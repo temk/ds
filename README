@@ -1,0 +1,13 @@
+How to build core:
+	mkdir build
+	cd build 
+	cmake -DCMAKE_INSTALL_PREFIX=.. .. && make -j 7 install
+
+to specify compiler, add to cmake the following: -DCMAKE_CXX_COMPILER=g++-4.4 
+
+
+How to build mex files:
+	run script matlab/mex/compile.m while CWD should be matlab/mex
+
+
+

@@ -1,0 +1,22 @@
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=mex 2013.6.3)  31 JUL 2013 10:36
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**ds_open.cpp
+(./ds_open.cpp
+This is MeX  Version 1.05  18 XII 1993  (B. Jackowski & M. Ry\'cko)
+! You can't use `macro parameter character #' in vertical mode.
+l.1 #
+     include <mex.h>
+? 
+! Interruption.
+<to be read again> 
+                   i
+l.1 #i
+      nclude <mex.h>
+? 
+! You can't use `macro parameter character #' in horizontal mode.
+l.2 #
+     include <matrix.h>
+? exit
+No pages of output.
