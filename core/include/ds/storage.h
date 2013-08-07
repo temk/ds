@@ -48,6 +48,9 @@ namespace ds {
 		
 		driver *driver_;
 		
+		size_t index_of(const column *) const;
+		void remove(column *);
+		
 		void read_index();
 		void write_index() const;
 		void add_column(column *, size_t i = size_t(-1));

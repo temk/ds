@@ -9,6 +9,7 @@ using namespace std;
 
 namespace ds {
 	class filter;
+	class driver;
 	class column;
 	class storage;
 	
@@ -21,23 +22,26 @@ namespace ds {
 		int siz_;
 		int endian_;
 		size_t len_;
+		bool dirty_;
 		string name_;
 		type_t type_;
-		filter * filter_;	
+
+		driver *driver_;
+		filter *filter_;
 		storage &storage_;
-		
-		friend ostream& operator<<(ostream &, const column &);
-		friend istream& operator>>(istream &, column &);
 		
 		void push_filter(filter *);
 		void init_filters();
+		
+		void read_index();
+		void write_index() const;
 	public:
-		column(storage &s);
+		column(storage &s, string name);
 		column(storage &s, type_t type, const string &name, int endian, int siz);
 		
 		virtual ~column();
 		
-		void remove();
+		void remove(bool leave_on_disk = false);
 		
 		column &flush();
 		

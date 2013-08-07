@@ -12,7 +12,7 @@
 using namespace ds;
 using namespace std;
 
-static const string INDEX("index.idx");
+static const string INDEX("index");
 
 static string 
 find_free_name(const string name, const map<string, column *> &map) {
@@ -149,7 +149,7 @@ storage::read_index() {
 	
 	char dot;
 	size_t major,minor, col_num;
-	string magic, version, rows, cols; 
+	string magic, version, rows, cols, temp, name; 
 	
 	istringstream in(buff);
 	delete [] buff;
@@ -159,21 +159,27 @@ storage::read_index() {
 	   >> cols >> col_num;
 	   
 	if (magic != "__DS__" || version != "version:" || cols != "cols:" || dot != '.') {
-		throw runtime_error("Malformed index");
+		throw runtime_error("Malformed master index");
 	}
 	
 	if (major > MAJOR_VERSION || (major == MAJOR_VERSION && minor > MINOR_VERSION)) {
 		throw runtime_error("versioning problem");
 	}
 	
-	for (size_t k = 0; k < col_num; ++ k) {
-		column *col = new column(*this);		
-		in >> *col;
-		
-		add_column(col);
-	}
 	
-	in >> magic; //todo: check __END__
+	while(true) {
+		in >> temp;
+		if (temp == "__END__") {
+			break;
+		}
+		
+		if (temp == "column:") {
+			in >> name;
+			add_column(new column(*this, name));
+		} else {
+			throw runtime_error("Malformed master index");
+		}
+	}
 }
 
 void 
@@ -184,7 +190,7 @@ storage::write_index() const {
 		<< "cols: "    << col_num_ << endl;
 		
 	for (col_list_t::const_iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter)	{
-		out << *(*iter) << endl;
+		out << "column: " << (*iter) ->name() << endl;
 	}
 	out << "__END__" << endl;
 	
@@ -202,4 +208,22 @@ storage::add_column(column *col, size_t i) {
 	col_by_name_[col ->name()] = col;
 	
 	++ col_num_;
+}
+
+size_t 
+storage::index_of(const column *col) const {
+	for (size_t k = 0; k < col_by_index_.size(); ++ k) {
+		if (col_by_index_[k] == col) {
+			return k;
+		}
+	}
+	
+	throw runtime_error("no such column in pool");
+}
+
+
+void 
+storage::remove(column *col) {
+	col_by_index_.erase(col_by_index_.begin() + index_of(col));
+	col_by_name_.erase(col ->name());
 }

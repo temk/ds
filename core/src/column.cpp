@@ -6,19 +6,38 @@
 #include <ds/filter_buff.h>
 #include <ds/filter_endian.h>
 #include <ds/filter_driver.h>
+#include <ds/driver.h>
 #include <ds/utils.h>
 
 #include <stdexcept>
+#include <sstream>
 
 using namespace ds;
 using namespace std;
 
-column::column(storage &s) 
-	: storage_(s), filter_(NULL) {	
+#define INDEX_KEY (name_ + ".idx")
+#define DICT_KEY  (name_ + ".dic")
+#define DATA_KEY  (name_ + ".dat")
+
+static const char * ENDI_NAME [] = { "little", "big" };
+
+static const char * TYPE_NAME [] = {
+		"invalid", "bool", 
+		"int8",   "int16",  "int32",  "int64", 
+		"uint8", "uint16", "uint32", "uint64", 
+		"float32", "float64", 
+		"string8", "string16", "string32", 
+		"blob"
+};
+
+column::column(storage &s, string name) 
+	: storage_(s), driver_(s.driver_), name_(name), filter_(NULL) {	
+		read_index();
+		init_filters();
 }
 
 column::column(storage &s, type_t type, const string &name, int endian, int siz)
-	: filter_(NULL), siz_(siz), endian_(endian), len_(0), name_(name), type_(type), storage_(s) {
+	: driver_(s.driver_), filter_(NULL), siz_(siz), endian_(endian), len_(0), dirty_(false), name_(name), type_(type), storage_(s) {
 
 	if (siz == -1) {
 		siz_ = size_of(type);
@@ -29,7 +48,7 @@ column::column(storage &s, type_t type, const string &name, int endian, int siz)
 
 size_t 
 column::index() const {
-	return 0;
+	return storage_.index_of(this);
 }
 
 column::~column(){
@@ -37,22 +56,40 @@ column::~column(){
 }
 
 void 
-column::remove(){
+column::remove(bool leave_on_disk) {
+	flush();
+	
+	if (!leave_on_disk) {
+		driver_ ->truncate(DATA_KEY,  0);
+		driver_ ->truncate(DICT_KEY,  0);
+		driver_ ->truncate(INDEX_KEY, 0);
+	}
+	storage_.remove(this);
 }
 
 column &
 column::flush() {	
-	filter_ ->flush();
+	if (dirty_) {
+		filter_ ->flush();
+		write_index();
+	}
 	return *this;
 }
 
 column &
 column::truncate(size_t len) {
+	if (dirty_) {
+		filter_ ->flush();
+	}
+	
+	dirty_ = true;
+	driver_ ->truncate(DATA_KEY, len);
 	return *this;
 }
 
 column &
 column::append(const void *data, size_t num) {	
+	dirty_ = true;
 	filter_ ->put(data, num);
 	len_ += num;
 	return *this;
@@ -121,6 +158,68 @@ column::init_filters() {
 	}
 }
 
+void 
+column::read_index() {
+	size_t len = driver_ ->length(INDEX_KEY);
+	
+	char *buff = new char [len];
+	driver_ -> read(INDEX_KEY, 0, buff, len);
+	
+	char dot;
+	string s_magic, s_end, s_name, s_type, s_endian, s_siz, s_len; 
+	
+	istringstream in(buff);
+	delete [] buff;
+	
+	string val_type, val_endian;
+	in  >> s_magic 
+	    >> s_name   >> name_
+		>> s_type   >> val_type
+		>> s_endian >> val_endian
+		>> s_siz    >> siz_
+		>> s_len    >> len_
+		>> s_end;
+	   
+	if (s_magic != "__DS__" || s_name != "name:"  || s_type != "type:" || s_endian != "endian:" || s_siz != "size:" || s_len != "length:") {
+		throw runtime_error("Malformed column index");
+	}
+	
+	for (int k = 0; k < sizeof(ENDI_NAME)/sizeof(ENDI_NAME[0]); ++ k) {
+		if (val_endian == ENDI_NAME[k]) {
+			endian_ = k; 
+			break;
+		}
+	}
+	
+	for (int k = 0; k < sizeof(TYPE_NAME)/sizeof(TYPE_NAME[0]); ++ k) {
+		if (val_type == TYPE_NAME[k]) {
+			type_ = static_cast<type_t>(k); 
+			break;
+		}
+	}
+}
+
+void 
+column::write_index() const {
+	string index = name_ + ".idx";
+	
+	const char *type_name = TYPE_NAME[type_];
+	const char *endi_name = ENDI_NAME[endian_];
+	
+	ostringstream out;
+	out << "__DS__"   << endl
+	    << "name: "   << name_     << endl
+		<< "type: "   << type_name << endl
+		<< "endian: " << endi_name << endl
+		<< "size: "   << siz_      << endl
+		<< "length: " << len_      << endl
+		<< "__END__" << endl;
+	
+	string data = out.str();
+	storage_.driver_ ->write(index, data.c_str(), data.length(), false );
+}
+/**
+
 ostream& 
 ds::operator<<(ostream &out, const column &col) {
 	return out << "column: " 
@@ -146,3 +245,4 @@ ds::operator>>(istream &in, column &col) {
 	col.init_filters();
 	return in;
 }
+**/
