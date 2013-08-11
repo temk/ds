@@ -1,9 +1,50 @@
 package org.temk.ds;
 
 import java.nio.ByteOrder;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface DataStorage {
+public class DataStorage {
+    static {
+        System.loadLibrary("dsjni");
+    }
+    /**
+     * pointer to C++ DataStorage object
+    **/
+    protected long handle = 0;
+    
+    
+    public static final long DEFAULT_BUFF_SIZ = 1024;
+    
+    protected Map<Long, Column> columns = new HashMap<Long, Column>();
+    
+    protected native long getColumnByIndex(long index);
+    protected native long getColumnByName(String name);
+    
+    /**
+     * Constructor.
+    **/
+    public DataStorage() {
+        
+    }
+    
+    /**
+     * Constructor. Opens storage. see @open
+    **/
+    public DataStorage(String path, String mode, long buffSiz) {
+        open(path, mode, buffSiz);
+        
+//        long columns [] = getColumns();
+    }
 
+    /**
+     * Constructor. Opens storage. see @open
+    **/
+    public DataStorage(String path) {
+        open(path, "rwc", DEFAULT_BUFF_SIZ);
+    }
+    
     /**
      * Open data storage or create it
      * @param path - path to storage
@@ -16,43 +57,58 @@ public interface DataStorage {
      * </ul>
      * @param buffSiz - size of caching buffer (in number of elements)
     **/
-    void open(String path, String mode, long buffSiz);
+    public native void open(String path, String mode, long buffSiz);
     
     /**
      * Open data storage with mode = "rwc" and buffSiz = 1024
      * @param path - path to storage
     **/
-    void open(String path);
+    public  void open(String path) {
+        open(path, "rwc", DEFAULT_BUFF_SIZ);
+    }
     
     /**
      * Close object and release resources
     **/
-    void close();
+    public native void close();
 
     /**
      * check status of object
      * @return true if storage is open
     */
-    boolean isOpen();
+    public boolean isOpen() {
+        return handle != 0;
+    }
+    
+    /**
+     * @return list of all columns
+    **/
+    Collection<Column> getColumns() {
+        return columns.values();
+    }
     
     /**
      * @return number of columns in data storage
     **/
-    long getColumnNumber();
+    public native long getColumnNumber();
             
     /**
      * get column by name
      * @param name - column name
      * @return column
     **/
-    Column getColumn(String name);
+    public Column getColumn(String name) {
+        return columns.get(getColumnByName(name));
+    }
     
     /**
      * get column by index
      * @param index - column index
      * @return column
     **/
-    Column getColumn(long index);
+    public Column getColumn(long index) {
+        return columns.get(getColumnByIndex(index));
+    }
     
     /**
      * Create new column. 
@@ -60,10 +116,10 @@ public interface DataStorage {
      * @param name - column name
      * @param endian - byte order  
      * @param index - column index
-     * @param auxSiz - number of bytes to store strings via dictionary. Valid values are 1,2,4 and 8
+     * @param extType - integral type to store strings via dictionary. use Type.INVALID when it not relevant
      * @return new column
     **/
-    Column addColumn(Type type, String name, ByteOrder endian, long index, long auxSiz);
+    public native Column addColumn(Type type, Type extType, String name, ByteOrder endian, long index);
     
     /**
      * Create new column with default values. (endian = host)
@@ -71,22 +127,22 @@ public interface DataStorage {
      * @param name - column name
      * @return new column
      */
-    Column addColumn(Type type, String name);
+    public Column addColumn(Type type, String name) {
+        Type extType = type.isString() ? Type.UINT32 :  Type.INVALID;
+        return addColumn(type, extType, name, ByteOrder.nativeOrder(), -1);
+    }
     
     /**
      * Create new column with default values. (name = "var" and endian = host).
      * @param type - type to store underlying data
      * @return new column
      */
-    Column addColumn(Type type);
+    public Column addColumn(Type type) {
+        return addColumn(type, "var");
+    }
     
     /**
      * flush all data to disk
     **/
-    void flush();
+    public native void flush();
 }
-/*
-		
-		column &add(type_t type, const string &name = "", int endian = DS_ENDIAN_HOST, size_t index = size_t(-1), int siz = -1);
-		
- */

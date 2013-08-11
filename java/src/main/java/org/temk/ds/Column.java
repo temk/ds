@@ -2,30 +2,43 @@ package org.temk.ds;
 
 import java.nio.ByteOrder;
 
-public interface Column {
+public class Column {
+    private long handle;
+    private String name;
+    private DataStorage parent;
+    
+    private native Object read(long offset, Object indexes, Object data);
+    
+    public Column(String name, long handle, DataStorage parent) {
+        this.name = name;
+        this.handle = handle;
+        this.parent = parent;
+        parent.columns.put(handle, this);
+    }
+    
     /**
      * remove current column
     **/
-    void remove(); 
+    public native void remove(); 
 
     /**
      * truncate current column to newLength
      * @param newLength - new length of column
      * @return current column 
      */
-    Column truncate(long newLength);
+    public native Column truncate(long newLength);
     
     /**
      * flush data belongs to current column to disk and rewrite index.
     **/
-    void flush();    
+    public native void flush();    
     
     /**
      * append data to column
      * @param array - data to append. Should be an array of primitives.
      * @return current column 
     **/
-    Column append(Object array);
+    public native Column append(Object array);
 
     
     /**
@@ -33,15 +46,19 @@ public interface Column {
      * @param data - primitives array to populate, if data is null, then allocate it.
      * @return read data
     **/
-    Object read(Object data);
+    public Object read(Object data) {
+        return read(0, null, data);
+    }
     
     /**
      * read column from particular offset
      * @param offset - how many elements to skip
      * @param data - primitives array to populate, if data is null, then allocate it.
      * @return read data
-    **/
-    Object read(long offset, Object data);
+    **/    
+    public Object read(long offset, Object data) {
+        return read(offset, null, data);
+    }
     
     
     /**
@@ -50,36 +67,40 @@ public interface Column {
      * @param indexes - indexes to read. Should be of type: int[], long[], short[] or byte
      * @return read data
     **/
-    Object read(Object indexes, Object data);    
+    public Object read(Object indexes, Object data) {
+        return read(0, indexes, data);
+    }    
 
     /**
      * @return index of current column
     **/
-    long getIndex();
+    public native long getIndex();
     
     /**
      * @return name of current column
     **/
-    String getName();
+    public String getName() {
+        return name;
+    }
     
     
     /**
      * @return length of current column
     **/
-    long getLength();
+    public native long getLength();
 
-    /**
-     * @return size of element 
-    **/
-    int getElementSize();
-    
     /**
      * @return byte order of current order
     **/
-    ByteOrder getByteOrder();
+    public native ByteOrder getByteOrder();
     
     /**
      * @return type of current column
     **/
-    Type getType();    
+    public native Type getType();    
+    
+    /**
+     * @return type of current column
+    **/
+    public native Type getExtType();    
 }

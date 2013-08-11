@@ -15,8 +15,7 @@ public enum Type {
     FLOAT64,
     STRING8,
     STRING16,
-    STRING32,
-    BLOB;
+    STRING32;
     
     /**
      * @param clazz - type of data
@@ -24,5 +23,9 @@ public enum Type {
      */
     static Type fromClass(Class clazz) {
         return INVALID;
+    }
+
+    boolean isString() {
+        return this == STRING8 || this == STRING16 || this == STRING32;
     }
 }

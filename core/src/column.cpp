@@ -23,7 +23,7 @@ column::column(storage &s, string name)
 }
 
 column::column(storage &s, type_t int_type, type_t ext_type, const string &name, endian_t endian)
-	: error_handler(s), dirty_(false), name_(name), length_(0), endian_(endian),  
+	: error_handler(s), dirty_(true), name_(name), length_(0), endian_(endian),  
 	int_type_(int_type), ext_type_(ext_type), filter_(NULL), storage_(s) {
 
 	init_filters();
@@ -121,6 +121,8 @@ column::init_filters() {
 	if (is_str(int_type_)) {
 		push_filter(new filter_str(*this, int_type_, ext_type_, buff_siz, name_, storage_.driver_, length_ > 0));
 	}
+	
+	flush();
 }
 
 void 
