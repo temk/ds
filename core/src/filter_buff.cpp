@@ -3,8 +3,8 @@
 
 using namespace ds;
 
-filter_buff::filter_buff(type_t type, size_t siz, size_t cap) 
- : filter(type, siz, type, siz), cap_(cap), len_(0L) {	
+filter_buff::filter_buff(const error_handler &ref, type_t type, size_t siz, size_t cap) 
+ : filter(ref, type, siz, type, siz), cap_(cap), len_(0L) {	
 	buff_ = new char [cap * size_in()];
 }
 
@@ -14,8 +14,10 @@ filter_buff::~filter_buff() {
 
 void 
 filter_buff::flush() {
-	next() ->put(buff_, len_);
-	len_ = 0L;
+	if (len_ > 0) {
+		next() ->put(buff_, len_);		
+		len_ = 0L;
+	}
 }
 
 void 

@@ -2,6 +2,7 @@ addpath ../../matlab
 
 ds = DataStorage('/tmp/storage');
 
+%%
 ds.add('uint32',  'Name', 'A');
 ds.add('double', 'Name', 'B');
 ds.add('char',    'Name', 'C');
@@ -33,7 +34,27 @@ ds.add('double', 'Name', 'B');
 B = rand(100000000, 1);
 A = repmat({'one', 'two', 'three', 'four', 'five' }, 1, 20000000)';
 
+disp('write doubles');
 tic;
 ds.append('B', B);
 toc;
+
+disp('write strings');
+tic;
+ds.append('A', A);
+toc;
+
+ds.flush();
+
+disp('read doubles');
+tic;
+b = ds.read('B');
+toc;
+
+disp('read strings');
+tic;
+a = ds.read('A');
+toc;
+
+
 %%

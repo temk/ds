@@ -1,10 +1,11 @@
 #ifndef __DS_FILTER_H__
 #define __DS_FILTER_H__
 #include <ds/types.h>
+#include <ds/error.h>
 
 namespace ds {
 	
-	class filter {
+	class filter : public error_handler {
 	private:
 		size_t s_in_;
 		size_t s_out_;
@@ -15,7 +16,7 @@ namespace ds {
 		filter *next_;
 		
 	public:
-		filter(type_t t_in, size_t s_in, type_t t_out, size_t s_out);
+		filter(const error_handler &ref, type_t t_in, size_t s_in, type_t t_out, size_t s_out);
 		virtual ~filter();		
 		
 		virtual void flush();

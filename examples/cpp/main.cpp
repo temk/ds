@@ -1,32 +1,47 @@
 #include <ds/column.h>
 #include <ds/storage.h>
 
+#include <ds/utils.h>
+#include <ds/error.h>
+
 using namespace ds;
 using namespace std;
 
-#define COL_LEN 128
+#define COL_LEN 1000000	
 #define DS_NAME "/tmp/storage"
 
-template<typename T>void 
-add_column(storage &s, type_t type, const string &name, size_t len) {
+void warning(const char *str) {
+	cerr << "Warning: " << str << endl;
+}
+
+void info(const char *str) {
+	cout << "Warning: " << str << endl;
+}
+
+template<typename T>void
+add_column(storage &s, type_t type, const string &name, size_t len)
+{
 	T *val = new T[len];
+	
 	for (size_t k = 0; k < len; ++ k) {
 		val[k] = T(k);
 	}
-
-	s.add(type, name).append(val, len); 
+	
+	s.add(type, name).append(val, len);
 	
 	delete [] val;
 }
 
-template<typename T>void 
-add_column_str(storage &s, type_t type, const string &name, size_t len, T *VALS, int VAL_NUM) {
+template<typename T>void
+add_column_str(storage &s, type_t type, const string &name, size_t len, T *VALS, int VAL_NUM)
+{
 	T *val = new T[len];
+	
 	for (size_t k = 0; k < len; ++ k) {
 		val[k] = VALS[k % VAL_NUM];
 	}
-
-	s.add(type, name, DS_ENDIAN_HOST, size_t(-1), 1).append(val, len); 
+	
+	s.add(type, DS_T_UINT32, name, DS_E_HOST).append(val, len);
 	
 	delete [] val;
 }
@@ -34,7 +49,9 @@ add_column_str(storage &s, type_t type, const string &name, size_t len, T *VALS,
 static const char * str_vals [] = {"yes", "no", "may be" };
 static const wchar_t * wstr_vals [] = {L"yes", L"no", L"may be" };
 
-void fill(storage &stor) {
+void fill(storage &stor)
+{
+	/*
 	add_column<bool>(stor, DS_T_BOOL, "var_bool", COL_LEN);
 	
 	add_column<int8_t>(stor,  DS_T_INT8,  "var_int8", COL_LEN);
@@ -49,74 +66,79 @@ void fill(storage &stor) {
 	
 	add_column<float32_t>(stor, DS_T_FLOAT32, "var_float32", COL_LEN);
 	add_column<float64_t>(stor, DS_T_FLOAT64, "var_float64", COL_LEN);
-	
-//	add_column_str<const char *>(stor, DS_T_STRING, "var_str", COL_LEN, &str_vals[0], sizeof(str_vals)/sizeof(str_vals[0]));
-//	add_column_str<const wchar_t *>(stor, DS_T_WSTRING, "var_wstr", COL_LEN, &wstr_vals[0], sizeof(wstr_vals)/sizeof(wstr_vals[0]));
-	
+	*/
+	add_column_str<const char *>(stor, DS_T_STRING8, "var_str", COL_LEN, &str_vals[0], sizeof(str_vals)/sizeof(str_vals[0]));
+	add_column_str<const wchar_t *>(stor, DS_T_STRING32, "var_wstr", COL_LEN, &wstr_vals[0], sizeof(wstr_vals)/sizeof(wstr_vals[0]));
+
 }
 
-void create_stor() {
-	try {
-		storage stor(DS_NAME, DS_O_DEFAULT|DS_O_TRUNC);
-		fill(stor);
-		stor.close();
-	} catch(const exception &ex) {
-		cerr << "Exception: " << ex.what() << endl;
-	}	
+void create_stor()
+{
+	storage stor;
+	stor.warn.set(&warning);
+	stor.info.set(&info);
+	
+	stor.open(DS_NAME, DS_O_DEFAULT | DS_O_TRUNC);
+	fill(stor);
+	stor.close();
 }
 
 #define bool_t bool
 #define READ_VAR(T) T ## _t *var_ ## T = new T ## _t [stor["var_" #T].length()]; \
-                    stor["var_" #T].read(0, stor["var_" #T].length(), var_ ## T);
+	stor["var_" #T].read(0, stor["var_" #T].length(), var_ ## T);
 
-void read_stor() {
-	try {
-		storage stor(DS_NAME, DS_O_READ);
-		
-		READ_VAR(bool)
-		
-		READ_VAR(int8)
-		READ_VAR(int16)
-		READ_VAR(int32)
-		READ_VAR(int64)
-		
-		READ_VAR(uint8)
-		READ_VAR(uint16)
-		READ_VAR(uint32)
-		READ_VAR(uint64)
-		
-		READ_VAR(float32)
-		READ_VAR(float64)
-		
-		size_t len = stor["var_str"].length();
-		const char ** var_str = new const char *[len];
-		stor["var_str"].read(0, len, var_str);
-		
-		size_t wlen = stor["var_wstr"].length();
-		const wchar_t ** var_wstr = new const wchar_t *[wlen];
-		stor["var_wstr"].read(0, len, var_wstr);
-		
-		
-		for (int k = 0; k < 10; ++ k) {
-			wcout << wstring(var_wstr[k]) << endl;
-		}
+void read_stor()
+{
+	storage stor;
+	stor.warn.set(&warning);
+	stor.info.set(&info);
+	
+	stor.open(DS_NAME, DS_O_READ);
+/*
+	READ_VAR(bool)
+	
+	READ_VAR(int8)
+	READ_VAR(int16)
+	READ_VAR(int32)
+	READ_VAR(int64)
+	
+	READ_VAR(uint8)
+	READ_VAR(uint16)
+	READ_VAR(uint32)
+	READ_VAR(uint64)
+	
+	READ_VAR(float32)
+	READ_VAR(float64)
+*/
+	size_t len = stor["var_str"].length();
+	const char ** var_str = new const char *[len];
+	stor["var_str"].read(0, len, var_str);
+	cout << "+++++++++++++++++"<< endl;
+	for (int k = 0; k < 10; ++ k) {
+		cout << string(var_str[k]) << endl;
+	}
+	cout << "----------------" << endl;
 
-	} catch(const exception &ex) {
-		cerr << "Exception: " << ex.what() << endl;
-	}	
+	size_t wlen = stor["var_wstr"].length();
+	const wchar_t ** var_wstr = new const wchar_t *[wlen];
+	stor["var_wstr"].read(0, len, var_wstr);
+
+	cout << "+++++++++++++++++"<< endl;
+	for (int k = 0; k < 10; ++ k) {
+		wcout << wstring(var_wstr[k]) << endl;
+	}
+	cout << "----------------" << endl;
 }
 
 
 int
-main(int argc, char **argv) {
-	create_stor();
-	read_stor();
-	/*
-	storage stor(DS_NAME, DS_O_READ);
-	wchar_t **b = new wchar_t *[3];
-	stor["dripsa"].read(0, 3, b);
-	for (int k = 0; k < 3; ++ k)
-		wcout << b[k] << endl;
-		 * */
+main(int argc, char **argv)
+{
+	try {
+		create_stor();
+		read_stor();
+	} catch(const exception &ex) {
+		cerr << "Exception: " << ex.what() << endl;
+	}
 	return 0;
 }

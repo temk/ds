@@ -1,6 +1,7 @@
 #ifndef __DS_COLUMN_H__
 #define __DS_COLUMN_H__
 #include <ds/types.h>
+#include <ds/error.h>
 
 #include <string>
 #include <iostream>
@@ -9,39 +10,40 @@ using namespace std;
 
 namespace ds {
 	class filter;
+	class lookup;
 	class driver;
 	class column;
 	class storage;
+	class string_accessor;
 	
-	ostream& operator<<(ostream &, const column &);
-	istream& operator>>(istream &, column &);
-	
-	class column
+	class column : public error_handler
 	{
 	private:
-		int siz_;
-		int endian_;
-		size_t len_;
 		bool dirty_;
 		string name_;
-		type_t type_;
+		size_t length_;
+		endian_t endian_;
 
-		driver *driver_;
+		type_t int_type_;
+		type_t ext_type_;
+		
 		filter *filter_;
 		storage &storage_;
 		
+	protected:
 		void push_filter(filter *);
-		void init_filters();
+		virtual void init_filters();
 		
-		void read_index();
-		void write_index() const;
-	public:
+	public:		
 		column(storage &s, string name);
-		column(storage &s, type_t type, const string &name, int endian, int siz);
+		column(storage &s, type_t int_type, type_t ext_type, const string &name, endian_t endian);
+		
+		void init(type_t int_type, type_t ext_type, size_t length, endian_t endian);
 		
 		virtual ~column();
 		
-		void remove(bool leave_on_disk = false);
+		void remove();
+		void detach();
 		
 		column &flush();
 		
@@ -60,22 +62,24 @@ namespace ds {
 		
 		inline size_t length() const;
 
-		inline int element_size() const;
-		inline int endian() const;
+		inline endian_t endian() const;
 		inline type_t type() const;
+		inline type_t ext_type() const;
+		
+		void set_string_accessor(const string_accessor *);
 	};
-	
+
 	// =============================================================================
 	inline type_t column::type() const {
-		return type_;
+		return int_type_;
 	}
 	
-	inline int column::endian() const {
+	inline type_t column::ext_type() const {
+		return ext_type_;
+	}
+	
+	inline endian_t column::endian() const {
 		return endian_;
-	}
-	
-	inline int column::element_size() const {
-		return siz_;
 	}
 	
 	inline const string & column::name() const {
@@ -83,7 +87,7 @@ namespace ds {
 	}
 	
 	inline size_t column::length() const {
-		return len_;
+		return length_;
 	}
 	
 	template<typename T> int 

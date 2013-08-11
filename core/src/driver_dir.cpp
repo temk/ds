@@ -1,7 +1,8 @@
 #include <ds/driver_dir.h>
 #include <ds/storage.h>
-
-#include <stdexcept>
+#include <ds/column.h>
+#include <ds/lookup.h>
+#include <ds/utils.h>
 
 #include <fstream>
 #include <fcntl.h>
@@ -23,7 +24,21 @@ using namespace std;
 #	define PATH_SEPARATOR '/'
 #endif // PATH_SEPARATOR
 
+#define FILE_MODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)
 
+
+template<typename T>void
+driver_dir::read_field(istream &in, const string &magic, T *val) {
+	string temp;
+	in >> temp;
+	if (temp != magic) {
+		err << "driver_dir::read_field: malformed index: expected " << magic << " but found " << temp << endl;
+	}
+	
+	if (val) {
+		in >> *val;
+	}	
+}
 
 template<typename T>
 size_t get_index(const void *data, size_t k) {
@@ -39,10 +54,9 @@ typedef size_t (*accessor_t)(const void *, size_t);
 		case 4: return &get_index<unsigned int>;		
 		case 8: return &get_index<unsigned long>;		
 		default:
-			throw runtime_error("Unexpected index size");
+			return NULL;
 	}
 }
-
 
 driver_dir::driver_dir() 
 	: mode_(0) {
@@ -70,10 +84,33 @@ driver_dir::construct_fullpath(const string &path, string &fullpath) const {
 	char tmp[PATH_MAX];
 	const char *p = realpath(parent.c_str(), tmp);
 	if (p == NULL) {
-		throw runtime_error("driver_dir::construct_fullpath: parent folder not exists or not available");
+		err << "driver_dir::construct_fullpath: parent folder '" 
+		    << parent
+			<< "' not exists or not available."
+			<< endl;
 	}
 	
 	fullpath = string(tmp) + PATH_SEPARATOR + name;
+}
+
+size_t
+driver_dir::filesize(const string &filename) const {
+	struct stat status;
+	int ret = stat(filename.c_str(), &status);
+	if (ret == -1 && errno == ENOENT) {
+		return size_t(-1);
+	}
+	return status.st_size;	
+}
+
+void
+driver_dir::create_empty_index() {
+	string index;
+	construct_filename("index", index);
+	ofstream out(index.c_str());
+	out << "__DS__"    << endl
+	<< "version: " << MAJOR_VERSION << "." << MINOR_VERSION << endl
+	<< "__END__" << endl;
 }
 
 void 
@@ -84,33 +121,35 @@ driver_dir::remove_all() const {
 	DIR *dir = opendir(base_.c_str());
 	while((entry = readdir(dir)) != NULL) {
 		construct_filename(entry ->d_name, filename);
-		remove(filename.c_str());
+		::remove(filename.c_str());
 	}
 }
 
 void 
-driver_dir::open(const string &base, int mode){
+driver_dir::open(const string &base, int mode) {
 	construct_fullpath(base, base_);
 
 	struct stat status;
 	int ret = stat(base_.c_str(), &status);
 	
-	if (ret == -1 && errno == ENOENT) {
-		
+	if (ret == -1 && errno == ENOENT) {		
 		if ((mode & DS_O_CREATE) == 0) {
-			throw runtime_error("driver_dir::open: Directory not found");
+			err << "driver_dir::open: Directory '" << base_ << "' not found" << endl;
 		}
 		
 		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
-			throw runtime_error("driver_dir::open: Cannot create directory");
+			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
 		}
 		
+		create_empty_index();
+		
 	} else if (S_ISDIR(status.st_mode) == 0) {
-		throw runtime_error("driver_dir::open: File is not directory");
-	}
+		err << "driver_dir::open: File '" << base_ << "' is not directory" << endl;
+	} 
 
 	if (mode & DS_O_TRUNC) {
 		remove_all();
+		create_empty_index();
 	}
 	
 	mode_ = mode;
@@ -122,23 +161,19 @@ driver_dir::close() {
 }
 		
 void 
-driver_dir::write(const string &key, const void *data, size_t len, bool append) {	
+driver_dir::write(const string &key, const void *data, size_t len) {	
 	if ((mode_ & DS_O_WRITE) == 0) {
-		throw runtime_error("driver_dir::write: Not openned for write");
+		err << "driver_dir::write: Not openned for write." << endl;
 	}
 	
 	string filename;
-	construct_filename(key, filename);
+	construct_filename(key + ".dat", filename);
 
-	int mask = O_WRONLY|O_CREAT;
-	if (append) {
-		mask |= O_APPEND;
-	}
-	
-	int fd = ::open(filename.c_str(), mask, 0600);
+	int mask = O_WRONLY|O_CREAT|O_APPEND;
+	int fd = ::open(filename.c_str(), mask, FILE_MODE);
 	
 	if (fd == -1) {
-		throw runtime_error("driver_dir::write: Cannot open file for write");
+		err << "driver_dir::write: Cannot open file '" << filename << "'for write." << endl;
 	}
 	
 	
@@ -146,23 +181,23 @@ driver_dir::write(const string &key, const void *data, size_t len, bool append) 
 	::close(fd);
 	
 	if (wr != len) {
-		throw runtime_error("Error during write");
+		err << "Error during write file '" << filename << "'." << endl;
 	}
 }
 
 void 
 driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {	
 	if ((mode_ & DS_O_READ) == 0) {
-		throw runtime_error("Not openned for read");
+		err << "driver_dir::read: Not openned for read." << endl;
 	}
 	
 	string filename;
-	construct_filename(key, filename);
+	construct_filename(key + ".dat", filename);
 	
 	int fd = ::open(filename.c_str(), O_RDONLY);
 	
 	if (fd == -1) {
-		throw runtime_error("Cannot open file for read");
+		err << "Cannot open file '" << filename << "'for read." << endl;
 	}
 
 	::lseek(fd, offs, SEEK_SET);
@@ -170,117 +205,231 @@ driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {
 	::close(fd);
 	
 	if (rd != len) {
-		throw runtime_error("Error during read");
+		err << "Error during read file '" << filename << "'." << endl;
 	}	
 }
 
 void 
 driver_dir::read(const string &key, const void *indexes, int idx_siz, size_t num, void *dst1, size_t el_siz) {	
 	if ((mode_ & DS_O_READ) == 0) {
-		throw runtime_error("Not openned for read");
+		err << "driver_dir::read: Not openned for read." << endl;
 	}
 	
 	char * dst = static_cast<char *>(dst1);
 	string filename;
-	construct_filename(key, filename);
+	construct_filename(key + ".dat", filename);
 	
 	int fd = ::open(filename.c_str(), O_RDONLY);
 	
 	if (fd == -1) {
-		throw runtime_error("Cannot open file for read");
+		err << "Cannot open file '" << filename << "' for read." << endl;
 	}
 
 	accessor_t acc = get_accessor(idx_siz);
 	
 	for (int k = 0; k < num; ++ k) {
-		//cout << "el siz: " << el_siz << ": get " << acc(indexes, k) << " with offset " << (acc(indexes, k) * el_siz) << endl;
 		::lseek(fd, acc(indexes, k) * el_siz, SEEK_SET);
 		if (::read(fd, dst, el_siz) != el_siz) {
 			::close(fd);
-			throw runtime_error("Error during read file");
+			err << "Error during read file '" << filename << "'." << endl;
 		}
 		
 		dst += el_siz;
 	}
 	::close(fd);
 }
-	
-/*	
-void 
-driver_dir::write_index(const string &text) {
-	cout << "write index" << endl;
-	if ((mode_ & DS_O_WRITE) == 0) {
-		throw runtime_error("Not openned for write");
-	}
-	
-	path filename = base_;
-	filename /= "index.dat";
-	
-	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT, 0600);
-	
-	if (fd == -1) {
-		throw runtime_error(string("Cannot open index for write: ") + filename.c_str());
-	}
-	
-	ssize_t wr = ::write(fd, text.c_str(), text.length());
-	::close(fd);
-	
-	if (wr != text.length()) {
-		throw runtime_error("Error during write");
-	}
-}
-
-void 
-driver_dir::read_index(string &text) {	
-	if ((mode_ & DS_O_READ) == 0) {
-		throw runtime_error("Not openned for read");
-	}
-	
-	path filename = base_;
-	filename /= "index.dat";
-	
-	ifstream in(filename.string().c_str());
-	if (!in.is_open()) {
-		throw runtime_error("cannot read index file");
-	}
-	std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-	text = contents;
-}
-*/
-
-size_t
-driver_dir::length(const string &key) {
-	string filename;
-	construct_filename(key, filename);
-
-	struct stat status;
-	int ret = stat(filename.c_str(), &status);
-	if (ret == -1 && errno == ENOENT) {
-		return 0;
-	}
-	return status.st_size;
-}
 
 void 
 driver_dir::truncate(const string &key, size_t sz) {
 	string filename;
-	construct_filename(key, filename);
+	construct_filename(key + ".dat", filename);
+	
+	::truncate(filename.c_str(), sz);
+}
 
-	if (sz == 0) {
-		unlink(filename.c_str());
-	} else {
-		truncate(filename.c_str(), sz);
+void 
+driver_dir::remove(const column &col) {
+	
+}
+
+void 
+driver_dir::write_dictionary(const lookup &l) {
+	string filename;
+	construct_filename(l.key() + ".dic", filename);
+
+	int el_siz = 0;
+    size_t count = l.count();
+	void **data = new void *[count];
+	size_t *len  = new size_t[count];
+	l.get(data, len, el_siz);
+	
+	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT, FILE_MODE);
+	
+	if (fd == -1) {
+		err << "driver_dir::write_dictionary: Cannot open file '" << filename << "' for write." << endl;
+	}
+
+	for (size_t k = 0; k < count; ++ k) {
+		size_t bytes = (len[k] + 1)* el_siz;
+		if (::write(fd, data[k], bytes) != bytes) {
+			delete [] len;
+			delete [] data;
+			::close(fd);
+			err << "Error during write file '" << filename << "'." << endl;
+		}
+	}
+	
+	::close(fd);
+	
+	delete [] len;
+	delete [] data;
+}
+
+void 
+driver_dir::write_index(const storage &stor) {
+	string index;
+	construct_filename("index", index);
+	
+	ofstream out(index.c_str());
+	if (!out) {
+		err << "driver_dir::write_index: Can't open file '" << index << "' for write." << endl;
+	}
+	
+	out << "__DS__"    << endl
+	    << "version: " << MAJOR_VERSION << "." << MINOR_VERSION << endl;
+		
+	for (size_t k = 0; k < stor.cols(); ++ k)	{
+		out << "column: " << stor[k].name() << endl;
+	}
+	
+	out << "__END__" << endl;
+}
+
+void 
+driver_dir::write_index(const column &col) {
+	string index;
+	construct_filename(col.name() + ".idx", index);
+	
+	ofstream out(index.c_str());
+	if (!out) {
+		err << "driver_dir::write_index: Can't open file '" << index << "' for write." << endl;
+	}
+	
+	out << "__DS__"   << endl
+	    << "name: "   << col.name()    << endl
+		<< "type: "   << col.type()    << endl;
+
+	if (is_str(col.type())) {
+		out << "dict: "   << col.ext_type() << endl;
+	}
+		
+	out << "endian: " << col.endian()  << endl
+		<< "length: " << col.length()  << endl
+		<< "__END__" << endl;	
+}
+
+void 
+driver_dir::read_dictionary(lookup &l) {
+	string filename;
+	construct_filename(l.key() + ".dic", filename);
+	
+	ssize_t sz = filesize(filename);
+
+	int fd = ::open(filename.c_str(), O_RDONLY);
+	
+	if (fd == -1) {
+		err << "driver_dir::read_dictionary: Cannot open file '" << filename << "' for read." << endl;
+	}
+	
+	char *data = new char[sz];
+	
+	int rd = ::read(fd, data, sz);
+	::close(fd);
+
+	if (rd == sz) {
+		l.set(data, rd);
+	}
+	delete [] data;	
+	
+	if (rd != sz) {
+		err << "driver_dir::read_dictionary: error during read file '" << filename << "'." << endl;
+	}
+	
+}
+
+void 
+driver_dir::read_index(storage &stor) {
+	string index;
+	construct_filename("index", index);
+	
+	ifstream in(index.c_str());
+	if (!in) {
+		err << "driver_dir::read_index: Can't open file '" << index << "' for read." << endl;
+	}
+
+	char dot;
+	int minor, major;
+	read_field(in, "__DS__",   (char *)NULL);
+	read_field(in, "version:", &major);
+	in >> dot >> minor;
+	
+	if (major > MAJOR_VERSION || (major == MAJOR_VERSION && minor > MINOR_VERSION)) {
+		err << "driver_dir::read_index: cannot read version higher then " 
+		    << MAJOR_VERSION << "." << MINOR_VERSION
+			<< " but found " << major << "." << minor << endl;
+	}
+	
+	string col_magic, col_val;
+	while( true ) {
+		in >> col_magic;
+		if (col_magic == "column:") {
+			in >> col_val;
+			try {
+				column *col = new column(stor, col_val);
+				read_index(*col);
+			} catch (exception &ex) {
+				warn << "driver_dir::read_index: " << ex.what() << endl;
+				warn << "driver_dir::read_index: column " << col_val << " ignored." << endl;
+			}
+		} else if (col_magic != "__END__") {
+			warn << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
+			break;
+		} else {
+			break;
+		}
 	}
 }
 
-/*
-bool 
-driver_dir::has_index() {
-	if (mode_ == 0) {
-		throw runtime_error("Not openned");
+void 
+driver_dir::read_index(column &col) {
+	string index;
+	construct_filename(col.name() + ".idx", index);
+	
+	ifstream in(index.c_str());
+	if (!in) {
+		err << "driver_dir::read_index: Can't open file '" << index << "' for read." << endl;
 	}
 	
-	path filename = base_;
-	filename /= "index.dat";
-	return exists(filename);
-}*/
+	string name;
+	size_t length;
+	endian_t endian;
+	type_t int_type, ext_type;
+	
+	read_field(in, "__DS__",  (char *)NULL);
+	read_field(in, "name:",   &name);
+	read_field(in, "type:",   &int_type);
+	if (is_str(int_type)) {
+		read_field(in, "dict:",   &ext_type);
+	} else {
+		ext_type = int_type;
+	}
+	read_field(in, "endian:", &endian);
+	read_field(in, "length:", &length);
+	read_field(in, "__END__", (char *)NULL);
+	
+	if (name != col.name()) {
+		warn << "driver_dir::read_index: column '" << col.name() << "' had different name '" << name << "'" << endl;
+	}
+	
+	col.init( int_type, ext_type, length, endian);
+}

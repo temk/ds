@@ -52,8 +52,8 @@ static void convert16(const void *src, void *dst, size_t num);
 static void convert32(const void *src, void *dst, size_t num);
 static void convert64(const void *src, void *dst, size_t num);
 
-filter_endian::filter_endian(type_t type, size_t siz, size_t cap) 
- : filter(type, siz, type, siz), cap_(cap) {
+filter_endian::filter_endian(const error_handler &ref, type_t type, size_t siz, size_t cap) 
+ : filter(ref, type, siz, type, siz), cap_(cap) {
 	 
 	buff_ = new char[siz * cap_];
 	

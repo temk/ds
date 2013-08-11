@@ -34,7 +34,8 @@ find_free_name(const string name, const map<string, column *> &map) {
 	return result;
 }
 
-storage::storage() {
+storage::storage() 
+ : col_num_(0), buff_siz_(0), driver_(NULL) {
 }
 
 storage::storage(const string &path, int mode, size_t buff_siz) 
@@ -47,20 +48,18 @@ storage::~storage() {
 
 void 
 storage::open(const string &path, int mode, size_t buff_siz) {
+	driver *d = new driver_dir();
 	try {
-		driver_ = new driver_dir();
-		driver_ ->open(path, mode);	
-		
-		if  (driver_ ->length(INDEX) > 0) {
-			read_index();		
-		}
-		
+		d ->warn.set(warn.get());
+		d ->info.set(info.get());		
+		d ->open(path, mode);
 	} catch(const runtime_error &ex) {
-		driver_ ->close();
-		delete driver_;
-		driver_ = NULL;
+		delete d;
 		throw ex;
 	}
+	
+	driver_ = d;
+	driver_ ->read_index(*this);	
 }
 
 void 
@@ -71,9 +70,9 @@ storage::flush() {
 	
 	for (col_list_t::iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter) {
 		(*iter) ->flush();
-	}
+	}	
 	
-	write_index();
+	driver_ ->write_index(*this);
 }
 
 void 
@@ -86,7 +85,6 @@ storage::close() {
 	
 	driver_ ->close();
 	delete driver_;
-	
 	driver_ = NULL;
 }
 
@@ -98,7 +96,7 @@ storage::is_open() const {
 const column & 
 storage::column_at(size_t idx) const {
 	if (idx >= col_by_index_.size()) {
-		throw runtime_error("No such column index");
+		err << "storage::column_at: No such column index: " << idx << endl;
 	}
 	return *col_by_index_[idx];
 }
@@ -107,7 +105,7 @@ const column &
 storage::column_at(const string &name) const {
 	col_map_t::const_iterator iter = col_by_name_.find(name);
 	if (iter == col_by_name_.end()) {
-		throw runtime_error("No such column: " + name);
+		err << "storage::column_at: No such column name: " << name << endl;
 	}
 	return *(iter ->second);
 }
@@ -115,7 +113,7 @@ storage::column_at(const string &name) const {
 column & 
 storage::column_at(size_t idx) {
 	if (idx >= col_by_index_.size()) {
-		throw runtime_error("No such column index");
+		err << "storage::column_at: No such column index: " << idx << endl;
 	}
 	return *col_by_index_[idx];
 }
@@ -124,90 +122,33 @@ column &
 storage::column_at(const string &name) {
 	col_map_t::iterator iter = col_by_name_.find(name);
 	if (iter == col_by_name_.end()) {
-		throw runtime_error("No such column: " + name);
+		err << "storage::column_at: No such column name: " << name << endl;
 	}
 	return *(iter ->second);
 }
 
 column &
-storage::add(type_t type, const string &name, int endian, size_t index, int siz) {	
+storage::add(type_t type, const string &name, endian_t endian, ssize_t index) {	
 	string var = find_free_name(name, col_by_name_);
-	column *col = new column(*this, type, var, endian, siz);
-	add_column(col, index);
+	if (var != name) {
+		warn << "storage::add: new column " << name << " got name " << var << endl;
+	}
+	
+	column *col = new column(*this, type, type, var, endian);
+	push(col, index);
 	return *col;
 }
 
-void 
-storage::read_index() {
-	size_t len = driver_ ->length(INDEX);
-	if (len == 0) {
-		return;		
+column &
+storage::add(type_t type, type_t dict, const string &name, endian_t endian, ssize_t index) {	
+	string var = find_free_name(name, col_by_name_);
+	if (var != name) {
+		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
 	
-	char *buff = new char [len];
-	driver_ -> read(INDEX, 0, buff, len);
-	
-	char dot;
-	size_t major,minor, col_num;
-	string magic, version, rows, cols, temp, name; 
-	
-	istringstream in(buff);
-	delete [] buff;
-	
-	in >> magic 
-	   >> version >> major >> dot >> minor 
-	   >> cols >> col_num;
-	   
-	if (magic != "__DS__" || version != "version:" || cols != "cols:" || dot != '.') {
-		throw runtime_error("Malformed master index");
-	}
-	
-	if (major > MAJOR_VERSION || (major == MAJOR_VERSION && minor > MINOR_VERSION)) {
-		throw runtime_error("versioning problem");
-	}
-	
-	
-	while(true) {
-		in >> temp;
-		if (temp == "__END__") {
-			break;
-		}
-		
-		if (temp == "column:") {
-			in >> name;
-			add_column(new column(*this, name));
-		} else {
-			throw runtime_error("Malformed master index");
-		}
-	}
-}
-
-void 
-storage::write_index() const {
-	ostringstream out;
-	out << "__DS__"    << endl
-	    << "version: " << MAJOR_VERSION << "." << MINOR_VERSION << endl
-		<< "cols: "    << col_num_ << endl;
-		
-	for (col_list_t::const_iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter)	{
-		out << "column: " << (*iter) ->name() << endl;
-	}
-	out << "__END__" << endl;
-	
-	string data = out.str();
-	driver_ ->write(INDEX, data.c_str(), data.length(), false );
-}
-
-void 
-storage::add_column(column *col, size_t i) {
-	if (i == size_t(-1)) {
-		i = col_by_index_.size();
-	}
-	
-	col_by_index_.insert(col_by_index_.begin() + i, col);
-	col_by_name_[col ->name()] = col;
-	
-	++ col_num_;
+	column *col = new column(*this, type, dict, var, endian);
+	push(col, index);
+	return *col;
 }
 
 size_t 
@@ -218,12 +159,24 @@ storage::index_of(const column *col) const {
 		}
 	}
 	
-	throw runtime_error("no such column in pool");
+	err << "storage::index_of: column '" << col -> name() << "' not found." << endl;
 }
 
 
 void 
-storage::remove(column *col) {
+storage::pop(column *col) {	
 	col_by_index_.erase(col_by_index_.begin() + index_of(col));
 	col_by_name_.erase(col ->name());
+}
+
+void 
+storage::push(column *col, ssize_t index) {
+	if (index == -1) {
+		index = col_by_index_.size();
+	}
+	
+	col_by_index_.insert(col_by_index_.begin() + index, col);
+	col_by_name_[col ->name()] = col;
+	
+	++ col_num_;
 }

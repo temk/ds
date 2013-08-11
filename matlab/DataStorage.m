@@ -101,10 +101,10 @@ classdef DataStorage < handle
         %   b = random(25, 'single');
         %   ds.add( class(b), 'Name', 'b', 'Endian', 'little'); % create float32 column named 'b', little endian
         %    
-            [name, endian, index, enc_siz] = get_parameters(self, ...
-                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncSize', -1}, ...
+            [name, endian, index, enc_type] = get_parameters(self, ...
+                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncType', 'uint32'}, ...
                                                            varargin);
-            ds_add(self.handle, type, name, endian, int64(index - 1), int32(enc_siz));
+            ds_add(self.handle, type, name, endian, int64(index - 1), enc_type);
             self.column = ds_info(self.handle);
         end
         

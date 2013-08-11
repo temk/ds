@@ -2,6 +2,7 @@
 #define __DS_FILTER_DRV_H__
 #include <ds/filter.h>
 
+#include <string>
 using namespace std;
 
 namespace ds {
@@ -13,7 +14,7 @@ namespace ds {
 		driver * driver_;
 		
 	public:
-		filter_driver(type_t type, size_t siz, const string &key, driver * drv);
+		filter_driver(const error_handler &ref, type_t type, size_t siz, const string &key, driver * drv);
 		virtual ~filter_driver();		
 		
 		virtual void flush();

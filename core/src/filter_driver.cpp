@@ -4,8 +4,8 @@
 using namespace ds;
 using namespace std;
 
-filter_driver::filter_driver(type_t type, size_t siz, const string &key, driver * drv) 
-	: filter(type, siz, DS_T_INVALID, 0), key_(key), driver_(drv) {	
+filter_driver::filter_driver(const error_handler &ref, type_t type, size_t siz, const string &key, driver * drv) 
+	: filter(ref, type, siz, DS_T_INVALID, 0), key_(key), driver_(drv) {	
 }
 
 filter_driver::~filter_driver() {	

@@ -1,6 +1,7 @@
 #include <mex.h>
 #include <matrix.h>
 
+#include <ds/utils.h>
 #include <ds/column.h>
 #include <ds/storage.h>
 
@@ -42,7 +43,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			 mxSetField(plhs[0], k, FIELDS[0], mxCreateString(c.name().c_str()));
 			 mxSetField(plhs[0], k, FIELDS[1], mxCreateDoubleScalar(c.length()));
 			 mxSetField(plhs[0], k, FIELDS[2], mxCreateString(type_to_str(c.type())));
-			 mxSetField(plhs[0], k, FIELDS[3], mxCreateDoubleScalar(c.element_size()));
+			 mxSetField(plhs[0], k, FIELDS[3], mxCreateDoubleScalar(size_of(c.ext_type())));
 			 mxSetField(plhs[0], k, FIELDS[4], mxCreateString(endian_to_str(c.endian())));
 		}
 

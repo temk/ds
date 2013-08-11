@@ -1,6 +1,8 @@
 #include "utils.h"
 
+#include <ds/utils.h>
 #include <ds/storage.h>
+#include <ds/lookup.h>
 
 #include <stdexcept>
 #include <string.h>
@@ -8,24 +10,24 @@
 using namespace ds;
 using namespace std;
 
-int 
+endian_t 
 ds::str_to_endian(const char *s) {
 	if (!strcmp(s, "big")) {		
-		return DS_ENDIAN_BIG;
+		return DS_E_BIG;
 	} else if (!strcmp(s, "little")) {
-		return DS_ENDIAN_LITTLE;
+		return DS_E_LITTLE;
 	} else if (!strcmp(s, "host")) {
-		return DS_ENDIAN_HOST;
+		return DS_E_HOST;
 	} else {
 		throw runtime_error("unexpected endian (string) value");
 	}
 }
 
 const char *
-ds::endian_to_str(int e) {
+ds::endian_to_str(endian_t e) {
 	switch(e) {
-		case DS_ENDIAN_BIG:    return "big";
-		case DS_ENDIAN_LITTLE: return "little";
+		case DS_E_BIG:    return "big";
+		case DS_E_LITTLE: return "little";
 		default:
 				throw runtime_error("unexpected endian (int) value");
 	}
@@ -56,9 +58,9 @@ ds::str_to_type(const char *s) {
 		return DS_T_FLOAT32;
 	} else if (!strcmp(s, "double")) {
 		return DS_T_FLOAT64;
-	} else if (!strcmp(s, "char")) {
+	} else if (!strcmp(s, "char8")) {
 		return DS_T_STRING8;
-	} else if (!strcmp(s, "char16")) {
+	} else if (!strcmp(s, "char")) {
 		return DS_T_STRING16;
 	} else if (!strcmp(s, "char32")) {
 		return DS_T_STRING32;
@@ -82,8 +84,8 @@ ds::type_to_str(type_t t) {
 		case DS_T_UINT64:   return "uint64";
 		case DS_T_FLOAT32:  return "single";
 		case DS_T_FLOAT64:  return "double";
-		case DS_T_STRING8:  return "char";
-		case DS_T_STRING16: return "char16";
+		case DS_T_STRING8:  return "char8";
+		case DS_T_STRING16: return "char";
 		case DS_T_STRING32: return "char32";
 		default:
 			throw runtime_error("unexpected type (int) value");		
@@ -139,6 +141,39 @@ ds::str_to_mode(const char *s) {
 	}
 	
 	return mode;
+}
+
+template<typename T>
+class mx_string_accessor : public string_accessor {
+public:
+	void get(size_t k, const void *p, string_container &s) const {
+		const mxArray *arr = mxGetCell(static_cast<const mxArray *>(p), k);
+		s.siz = sizeof(mxChar);
+		s.len = mxGetNumberOfElements(arr);
+		s.str = mxGetData(arr);
+	}
+	
+	void set(size_t k, const string_container &s, void *p ) const {
+		mwSize dim[2] = {1, s.len};		
+		mxArray *arr = mxCreateCharArray(2, &dim[0]);
+		ds::str_copy<T, mxChar>(static_cast<const T *>(s.str), mxGetChars(arr), s.len);
+		mxSetCell(static_cast<mxArray *>(p), k, arr);
+	}
+};
+
+
+string_accessor * 
+ds::get_string_accessor(type_t type) {
+	static string_accessor * acc_8  = new mx_string_accessor<char>();
+	static string_accessor * acc_16 = new mx_string_accessor<short>();
+	static string_accessor * acc_32 = new mx_string_accessor<int>();
+	
+	switch(type) {
+		case DS_T_STRING8:  return acc_8;
+		case DS_T_STRING16: return acc_16;
+		case DS_T_STRING32: return acc_32;
+		default: return NULL;
+	}
 }
 
 

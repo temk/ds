@@ -13,7 +13,7 @@ namespace ds {
 		converter conv_;
 		
 	public:
-		filter_endian(type_t type, size_t siz, size_t cap);
+		filter_endian(const error_handler &ref, type_t type, size_t siz, size_t cap);
 		~filter_endian();		
 		
 		void put(const void *data, size_t num);

@@ -2,6 +2,7 @@
 #include <matrix.h>
 #include <string.h>
 
+#include <ds/utils.h>
 #include <ds/column.h>
 #include <ds/storage.h>
 
@@ -11,30 +12,6 @@
 
 using namespace ds;
 using namespace std;
-
-template<typename T>mxArray *
-read_string(column &c, uint64_t *rows, size_t num) {
-	const T **buff = new const T *[num];
-
-	c.read(rows, num, buff);
-
-	mxArray * data = mxCreateCellMatrix(num, 1);
-	
-	
-	for (size_t k = 0; k < num; ++ k) {
-		mwSize dim[2];		
-		dim[0] = 1;
-		dim[1] = str_length(buff[k]);
-		
-		mxArray *s = mxCreateCharArray(2, &dim[0]);
-		str_copy(buff[k], mxGetChars(s), dim[1], false);
-		mxSetCell(data, k, s);
-	}
-	delete [] buff;			
-	
-	return data;
-}
-
 
 /**
  * info = ds_read_index(handle, uint64 *cols, uint64 *rows);
@@ -67,12 +44,9 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			//cout << "Read col " << cols[k] << ":" << c.name() << endl;
 			
 			mxArray *data = NULL;
-			if (c.type() == DS_T_STRING8) {
-				data = read_string<unsigned char>(c, rows, row_num);
-			} else if (c.type() == DS_T_STRING16) {
-				data = read_string<unsigned short>(c, rows, row_num);
-			} else if (c.type() == DS_T_STRING32) {
-				data = read_string<unsigned int>(c, rows, row_num);
+			if (is_str(c.type())) {
+				data = mxCreateCellMatrix(row_num, 1);
+				c.read(rows, row_num, data);
 			} else {
 				data = mxCreateNumericMatrix(row_num, 1, type_to_class(c.type()), mxREAL);
 				c.read(rows, row_num, mxGetData(data));

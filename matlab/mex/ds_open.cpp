@@ -1,7 +1,9 @@
 #include <mex.h>
 #include <matrix.h>
 
+#include <ds/utils.h>
 #include <ds/storage.h>
+#include <ds/column.h>
 
 #include "utils.h"
 
@@ -40,6 +42,12 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	try {
 		int int_mode = str_to_mode(mode);
 		stor.s = new storage(path, int_mode, buff_siz);		
+		for (size_t k = 0; k < stor.s ->cols(); ++ k) {
+			column &col = stor.s ->column_at(k);
+			if (is_str(col.type())) {
+				col.set_string_accessor(get_string_accessor(col.type()));
+			}
+		}
 	} catch(const runtime_error &err) {
 		mexErrMsgTxt(err.what());
 	}

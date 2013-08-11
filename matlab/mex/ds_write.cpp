@@ -1,6 +1,7 @@
 #include <mex.h>
 #include <matrix.h>
 
+#include <ds/utils.h>
 #include <ds/column.h>
 #include <ds/storage.h>
 
@@ -10,26 +11,6 @@
 
 using namespace ds;
 using namespace std;
-
-template<typename T> void 
-write_string(column &c, mxArray *data, size_t len) {
-	T **buff = new T* [len];
-	
-	for (size_t k = 0; k < len; ++ k) {
-		mxArray *cell = mxGetCell(data, k);
-		size_t slen = mxGetNumberOfElements(cell);	
-		buff[k] = new T[slen + 1];
-		str_copy(mxGetChars(cell), buff[k], slen);
-	}
-	
-	c.append(buff, len);				
-	
-	for (size_t k = 0; k < len; ++ k) {
-		delete [] buff[k];
-	}
-	
-	delete [] buff;	
-}
 
 /**
  * ds_write(handle, col, data, num);
@@ -53,15 +34,9 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			
 			mxArray *data = mxGetCell(prhs[2], k);
 			size_t len = mxGetNumberOfElements(data);
-			
-			//cout << "Append col " << cols[k] << ":" << c.name() << " by "  << len << endl;
-			
-			if (c.type() == DS_T_STRING8) {
-				write_string<unsigned char >(c, data, len);
-			} else if (c.type() == DS_T_STRING16) {
-				write_string<unsigned char >(c, data, len);
-			} else if (c.type() == DS_T_STRING32) {
-				write_string<unsigned int>(c, data, len);
+
+			if (is_str(c.type())) {
+				c.append(data, len);
 			} else {
 				c.append(mxGetData(data), len);				
 			}
