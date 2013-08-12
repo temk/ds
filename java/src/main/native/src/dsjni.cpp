@@ -28,12 +28,12 @@ public:
 		jstring str = (jstring )env_ ->GetObjectArrayElement(array, k);
 		s.siz = sizeof(jchar);
 		s.len = env_ ->GetStringLength(str);
-		s.str = env_ ->GetStringChars( str, 0);
+		s.str = env_ ->GetStringCritical(str, 0);
+		
+		env_ ->ReleaseStringCritical(str, (jchar *)s.str);
 	}
 	
 	void set(size_t k, const string_container &s, void *array ) const {
-		cout << 	"len: " << s.len << endl;
-		
 		jstring str = NULL;
 		if (s.siz == sizeof(jchar)) {
 			str = env_ ->NewString((jchar *)s.str, s.len);
@@ -383,58 +383,6 @@ JNICALL Java_org_temk_ds_Column_truncate(JNIEnv *env, jobject self, jlong new_le
 	}
 }
 
-#define GET_ARRAY_DATA(T, t, u) case DS_T_ ## T : data = env ->Get ## t ## ArrayElements(static_cast<j ## u ## Array>(array), 0); break
-
-JNIEXPORT void JNICALL 
-Java_org_temk_ds_Column_append(JNIEnv *env, jobject self, jobject array) {
-	column *col = NULL;
-	try {		
-		get_handle(env, self, col);	
-
-		jsize len = env ->GetArrayLength(static_cast<jarray>(array));
-		void *data = NULL;
-		
-		switch(col ->type()) {
-		GET_ARRAY_DATA(BOOL,    Boolean, boolean);
-		GET_ARRAY_DATA(INT8,    Byte,    byte);
-		GET_ARRAY_DATA(INT16,   Short,   short);
-		GET_ARRAY_DATA(INT32,   Int,     int);
-		GET_ARRAY_DATA(INT64,   Long,    long);
-		GET_ARRAY_DATA(UINT8,   Byte,    byte);
-		GET_ARRAY_DATA(UINT16,  Short,   short);
-		GET_ARRAY_DATA(UINT32,  Int,     int);
-		GET_ARRAY_DATA(UINT64,  Long,    long);
-		GET_ARRAY_DATA(FLOAT32, Float,   float);
-		GET_ARRAY_DATA(FLOAT64, Double,  double);
-		
-		case DS_T_STRING8:
-		case DS_T_STRING16:
-		case DS_T_STRING32:
-			data = array;
-			break;
-			
-		default: 
-			break;
-		}
-		col ->append(data, len);
-	} catch(const exception &ex) {
-		jni_throw(env, ex.what());
-	}	
-}
-
-JNIEXPORT void JNICALL 
-Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jlong offset, jobject indexes, jobject data) {
-	column *col = NULL;
-	try {		
-		get_handle(env, self, col);	
-		
-	} catch(const exception &ex) {
-		jni_throw(env, ex.what());
-	}	
-	
-	jni_throw(env, "READ not implemented");
-}
-
 JNIEXPORT jlong JNICALL 
 Java_org_temk_ds_Column_getIndex(JNIEnv *env, jobject self) {
 	column *col = NULL;
@@ -500,4 +448,72 @@ Java_org_temk_ds_Column_getType(JNIEnv *env, jobject self) {
 		jni_throw(env, ex.what());
 	}
 	return result;
+}
+
+static void 
+jni_read(column *col, JNIEnv *env, jarray data, jlong offset, jlong num) {
+
+	if (is_str(col->type())) {
+		col ->read(offset, num, data);
+	} else {
+		void *ptr = env ->GetPrimitiveArrayCritical(data, 0);
+		col ->read(offset, num, ptr);
+		env ->ReleasePrimitiveArrayCritical(data, ptr, 0);
+	}
+	
+}
+
+static void 
+jni_read(column *col, JNIEnv *env, jarray data, jarray indexes, int idx_siz) {
+	size_t num = env ->GetArrayLength(data);
+	void *idx = env ->GetPrimitiveArrayCritical(indexes, 0);
+
+	if (is_str(col->type())) {
+		col ->read(idx, idx_siz, num, data);
+	} else {
+		void *ptr = env ->GetPrimitiveArrayCritical(data, 0);
+		col ->read(idx, idx_siz, num, ptr);
+		env ->ReleasePrimitiveArrayCritical(data, ptr, 0);
+	}
+	
+	env ->ReleasePrimitiveArrayCritical(indexes, idx, 0);
+}
+
+static void 
+jni_write(column *col, JNIEnv *env, jarray data) {
+	size_t num = env ->GetArrayLength(data);
+	
+	if (is_str(col->type())) {
+		col ->append(data, num);
+	} else {
+		void *ptr = env ->GetPrimitiveArrayCritical(data, 0);
+		col ->append(ptr, num);
+		env ->ReleasePrimitiveArrayCritical(data, ptr, 0);
+	}
+}
+
+JNIEXPORT void 
+JNICALL Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jobject data, jobject indexes, jint index_siz, jlong offset, jlong num) {
+	column *col = NULL;
+	try {		
+		get_handle(env, self, col);
+		if (indexes == NULL) {
+			jni_read(col, env, static_cast<jarray>(data), offset, num);			
+		} else {
+			jni_read(col, env, static_cast<jarray>(data), static_cast<jarray>(indexes), index_siz);			
+		}
+	} catch(const exception &ex) {
+		jni_throw(env, ex.what());
+	}
+}
+
+JNIEXPORT void 
+JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data) {
+	column *col = NULL;
+	try {		
+		get_handle(env, self, col);
+		jni_write(col, env, static_cast<jarray>(data));
+	} catch(const exception &ex) {
+		jni_throw(env, ex.what());
+	}
 }

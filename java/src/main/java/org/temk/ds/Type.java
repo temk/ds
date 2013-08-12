@@ -22,7 +22,24 @@ public enum Type {
      * @return mapped data type for given class
      */
     static Type fromClass(Class clazz) {
-        return INVALID;
+            if (clazz == Boolean.TYPE)
+                return BOOL;
+            else if(clazz == Byte.TYPE)
+                return INT8;
+            else if(clazz == Short.TYPE)
+                return INT16;
+            else if(clazz == Integer.TYPE)
+                return INT32;
+            else if(clazz == Long.TYPE)
+                return INT64;
+            else if(clazz == Float.TYPE)
+                return FLOAT32;
+            else if(clazz == Double.TYPE)
+                return FLOAT64;
+            else if(clazz == String.class)
+                return STRING16;
+            else
+                return INVALID;
     }
 
     boolean isString() {
