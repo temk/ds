@@ -5,7 +5,7 @@
 using namespace ds;
 using namespace std;
 
-#define COL_LEN 1000000	
+#define COL_LEN 100	
 #define DS_NAME "/tmp/storage"
 
 void warning(const char *str) {
@@ -18,7 +18,7 @@ void info(const char *str) {
 
 template<typename T>void
 add_column(storage &s, type_t type, const string &name, size_t len)
-{
+{	
 	T *val = new T[len];
 	
 	for (size_t k = 0; k < len; ++ k) {
@@ -49,7 +49,7 @@ static const wchar_t * wstr_vals [] = {L"yes", L"no", L"may be" };
 
 void fill(storage &stor)
 {
-	/*
+	
 	add_column<bool>(stor, DS_T_BOOL, "var_bool", COL_LEN);
 	
 	add_column<int8_t>(stor,  DS_T_INT8,  "var_int8", COL_LEN);
@@ -64,7 +64,7 @@ void fill(storage &stor)
 	
 	add_column<float32_t>(stor, DS_T_FLOAT32, "var_float32", COL_LEN);
 	add_column<float64_t>(stor, DS_T_FLOAT64, "var_float64", COL_LEN);
-	*/
+	
 	add_column_str<const char *>(stor, DS_T_STRING8, "var_str", COL_LEN, &str_vals[0], sizeof(str_vals)/sizeof(str_vals[0]));
 	add_column_str<const wchar_t *>(stor, DS_T_STRING32, "var_wstr", COL_LEN, &wstr_vals[0], sizeof(wstr_vals)/sizeof(wstr_vals[0]));
 
@@ -92,7 +92,7 @@ void read_stor()
 	stor.info.set(&info);
 	
 	stor.open(DS_NAME, DS_O_READ);
-/*
+
 	READ_VAR(bool)
 	
 	READ_VAR(int8)
@@ -107,7 +107,7 @@ void read_stor()
 	
 	READ_VAR(float32)
 	READ_VAR(float64)
-*/
+
 	size_t len = stor["var_str"].length();
 	const char ** var_str = new const char *[len];
 	stor["var_str"].read(0, len, var_str);
