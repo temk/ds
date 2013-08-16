@@ -1,7 +1,5 @@
 #include <ds/column.h>
 #include <ds/storage.h>
-
-#include <ds/utils.h>
 #include <ds/error.h>
 
 using namespace ds;
