@@ -152,16 +152,18 @@ void usage(ostream &out, const string &prog)  {
 		<< TAB << "input" << TAB "valid path to data storage"  << endl
 		<< TAB << "output" << TAB "valid path to output scv file or '-' for stdin"  << endl
 		<< TAB << "Options:" << endl
-		<< TAB << TAB << "-d D" << TAB << "Use delimeter D. Default is '.'" << endl
-		<< TAB << TAB << "-q Q" << TAB << "Use quote Q for strings. Default is no quotes for string" << endl 
+		<< TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
+		<< TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl 
 		<< TAB << TAB << "-n "  << TAB << "Write column names as a first line" << endl
-		<< TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl;
+		<< TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
+		<< endl << endl
+		<< TAB << "Example: ds2csv -q\\' -n /tmp/storage -" << endl << endl;
 }
 
 int
 parse_params(int argc, char **argv, options &opt) {
 	opt.delim = ',';
-	opt.quote = "";
+	opt.quote = "\"";
 	opt.names = false;
 	int file_count = 0;
 	
@@ -234,6 +236,11 @@ convert(storage &stor, ostream &out, options &opt) {
 			cols[k] ->print(out, n);
 		}					
 	}
+	
+	for (size_t k = 0; k < cols.size(); ++ k) {
+		delete cols[k];
+	}
+	
 }
 
 int
