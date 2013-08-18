@@ -19,6 +19,7 @@ using namespace std;
 
 struct options {
 	bool head;
+    bool force;
 	string delim; 
 	string quote;
 	string input;
@@ -207,8 +208,9 @@ void usage(ostream &out, const string &prog)  {
 		<< TAB << "input" << TAB "valid path to input scv file or '-' for stdin"  << endl
 		<< TAB << "output" << TAB "valid path to output data storage"  << endl
 		<< TAB << "Options:" << endl
-		<< TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
-		<< TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl 
+        << TAB << TAB << "-f" << TAB << "Remove output storage if it exists" << endl
+        << TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
+        << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl
 		<< TAB << TAB << "-n "  << TAB << "Read column names as a first line from csv" << endl
 		<< TAB << TAB << "-n<number> <name>"  << TAB << "Set name <name> for column #<number>" << endl
 		<< TAB << TAB << "-t<number> <type>"  << TAB << "Set type <type> for column #<number>" << endl
@@ -229,8 +231,9 @@ int
 parse_params(int argc, char **argv, options &opt) {
 	opt.delim = ',';
 	opt.quote = "\"";
-	opt.head  = false;
-	int file_count = 0;
+    opt.head  = false;
+    opt.force = false;
+    int file_count = 0;
 	
 	if (argc < 3) {
 		usage(cerr, argv[0]);
@@ -252,12 +255,17 @@ parse_params(int argc, char **argv, options &opt) {
 			continue;
 		}
 		
-		if (param[1] == 'd') {
-			opt.delim = param.substr(2);
-			continue;
-		} 
-		
-		if (param[1] == 'q') {
+        if (param[1] == 'f') {
+            opt.force = true;
+            continue;
+        }
+
+        if (param[1] == 'd') {
+            opt.delim = param.substr(2);
+            continue;
+        }
+
+        if (param[1] == 'q') {
 			opt.quote = param.substr(2);
 			continue;
 		} 
@@ -477,7 +485,12 @@ main(int argc, char **argv) {
 	}
 	
 	try {
-		storage stor(opt.output, DS_O_WRITE|DS_O_CREATE|DS_O_TRUNC);
+        int flags = DS_O_WRITE|DS_O_CREATE;
+        if (opt.force) {
+            flags |= DS_O_TRUNC;
+        }
+
+        storage stor(opt.output, flags);
 		if (opt.input == "-") {
 			convert(cin, stor, opt);
 		} else {

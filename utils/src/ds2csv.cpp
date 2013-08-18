@@ -37,6 +37,7 @@ inline ostream &operator<<(ostream &out, const int *s) {
 
 struct options {
 	bool names;
+    bool force;
 	string delim;
 	string quote;
 	string input;
@@ -152,8 +153,9 @@ void usage(ostream &out, const string &prog)  {
 		<< TAB << "input" << TAB "valid path to data storage"  << endl
 		<< TAB << "output" << TAB "valid path to output scv file or '-' for stdin"  << endl
 		<< TAB << "Options:" << endl
-		<< TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
-		<< TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl 
+        << TAB << TAB << "-f" << TAB << "Removes output file if it exists, befor write" << endl
+        << TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
+        << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl
 		<< TAB << TAB << "-n "  << TAB << "Write column names as a first line" << endl
 		<< TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
 		<< endl << endl
@@ -165,6 +167,7 @@ parse_params(int argc, char **argv, options &opt) {
 	opt.delim = ',';
 	opt.quote = "\"";
 	opt.names = false;
+    opt.force = false;
 	int file_count = 0;
 	
 	if (argc < 3) {
@@ -187,9 +190,11 @@ parse_params(int argc, char **argv, options &opt) {
 			continue;
 		}
 		
-		if (param[1] == 'd') {
-			opt.delim = param.substr(2);
-		} else if (param[1] == 'q') {
+        if (param[1] == 'f') {
+            opt.force = true;
+        } else if (param[1] == 'd') {
+            opt.delim = param.substr(2);
+        } else if (param[1] == 'q') {
 			opt.quote = param.substr(2);
 		} else if (param[1] == 'n') {
 			opt.names = true;
@@ -258,8 +263,14 @@ main(int argc, char **argv) {
 		if (opt.output == "-") {
 			convert(stor, cout, opt);
 		} else {
-			ofstream out(opt.output.c_str());
-			convert(stor, out, opt);
+            ios_base::openmode mode = ios_base::out;
+            if (opt.force) {
+                mode |= ios_base::trunc;
+            } else {
+                mode |= ios_base::app;
+            }
+            ofstream out(opt.output.c_str(), mode);
+            convert(stor, out, opt);
 		}
 	} catch(exception &ex) {
 		cerr << "Runtime Error: " << ex.what() << endl;
