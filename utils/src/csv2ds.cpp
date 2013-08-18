@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
+#include <limits>
 
 #include <string.h>
 
@@ -18,7 +19,7 @@ using namespace std;
 
 struct options {
 	bool head;
-	string delim;
+	string delim; 
 	string quote;
 	string input;
 	string output;
@@ -75,6 +76,40 @@ appender_ex<str32_t>::append(const string &s) {
 	int * val = str_dup<int, char>(str, strlen(str));
 	col_.append(&val, 1); 
 	delete [] val;
+}
+
+template<typename T>T
+read_float(const string & s) {
+	T val;
+	stringstream str(s);
+
+	str >> val;
+	
+	if (str.fail()) {
+		if (s == "nan") {
+			val = numeric_limits<double>::quiet_NaN(); 
+		} else if (s == "inf") {
+			val = numeric_limits<double>::infinity(); 				
+		} else if (s == "-inf") {
+			val = - numeric_limits<double>::infinity(); 				
+		} else {
+			val = 0;
+		}
+	}
+	
+	return val;
+}
+
+template <>void 
+appender_ex<float>::append(const string &s) {
+		float val = read_float<float>(s);
+		col_.append(&val, 1); 
+}
+ 
+template <>void 
+appender_ex<double>::append(const string &s) {
+		double val = read_float<double>(s);
+		col_.append(&val, 1); 
 }
  
 appender::appender(column &col) : col_(col) {	

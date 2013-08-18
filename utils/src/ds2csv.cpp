@@ -240,7 +240,7 @@ convert(storage &stor, ostream &out, options &opt) {
 	for (size_t k = 0; k < cols.size(); ++ k) {
 		delete cols[k];
 	}
-	
+	 
 }
 
 int
