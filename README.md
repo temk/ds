@@ -1,4 +1,4 @@
-# DS library
+# Data Storage (DS) library
 
 The library intended for serialization/deserialization of large massive of primitives.
 The data organized as a set of named columns, which allows store a heretogenious-type matrices on the disk.
