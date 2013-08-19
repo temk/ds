@@ -14,6 +14,13 @@ Also:
 3. each column saved in separated file, which allows efficiently add new columns and new rows as well.
 4. converters between ds format and csv.
 
+Supported languages:
+1. C/C++
+2. Java
+3. Matlab
+4. will added more
+
+
 ## building
 
  1. edit cmake.config file
