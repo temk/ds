@@ -8,17 +8,19 @@ The main purpose of the library, is to be replacement for CSV format, which is e
 Supported types are: booleans, integers, floating point numbers and strings. 
 In order to serialize string, the dictionary is used. So, it is quite efficient when the column of large length, contains actually small number of different strings.
 
-Also:
-1. data stored in binary format
-2. byte order swap applyed only when it need. 
-3. each column saved in separated file, which allows efficiently add new columns and new rows as well.
-4. converters between ds format and csv.
+## Also:
 
-Supported languages:
-1. C/C++
-2. Java
-3. Matlab
-4. will added more
+ 1. data stored in binary format
+ 2. byte order swap applyed only when it need. 
+ 3. each column saved in separated file, which allows efficiently add new columns and new rows as well.
+ 4. converters between ds format and csv.
+
+## Supported languages:
+
+ 1. C/C++
+ 2. Java
+ 3. Matlab
+ 4. will added more
 
 
 ## building
