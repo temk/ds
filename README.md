@@ -1,29 +1,32 @@
 # Data Storage (DS) library
 
-The library intended for serialization/deserialization of large massive of primitives.
-The data organized as a set of named columns, which allows store a heretogenious-type matrices on the disk.
 
-The main purpose of the library, is to be replacement for CSV format, which is extremely slow. 
+The library is intended to serialize and de-serialize the large massive of primitives.
+The data is organized as a set of named columns that allows to store heterogeneous-type matrices on the disk.
+The main purpose of the library is to replace CSV format which is extremely slow.
 
-Supported types are: booleans, integers, floating point numbers and strings. 
-In order to serialize string, the dictionary is used. So, it is quite efficient when the column of large length, contains actually small number of different strings.
+
+Supported data types are: Booleans, integers, floating point numbers and strings.
+
+In order to serialize the string the dictionary is used.
+So, it is quite efficient when the column of large length contains small number of different strings.
+
 
 ## Also:
-
- 1. data stored in binary format
- 2. byte order swap applyed only when it need. 
- 3. each column saved in separated file, which allows efficiently add new columns and new rows as well.
- 4. converters between ds format and csv.
+ 1. Data is stored in a binary format
+ 2. Byte order swap is applied only when it is needed
+ 3. Each column is saved in a separate file. This allows to add efficiently new columns and new rows
+ 4. It supports conversion between ds and csv formats
 
 ## Supported languages:
 
  1. C/C++
  2. Java
  3. Matlab
- 4. will added more
+ 4. More will be added
 
 
-## building
+## Building
 
  1. edit cmake.config file
  2. mkdir build
@@ -33,11 +36,12 @@ In order to serialize string, the dictionary is used. So, it is quite efficient 
  6. make install
 
 ### matlab wrapper
-from matlab, enter to mex directory and run compile.m
+Please enter mex directory from Matlab and then run compile.m
 
 ## License
-AS IS, free for non-commertial using.
+AS IS, FREE for Non-Commercial usage
 
 
-## Questions
-boris@temk.org
+## Site and documentations
+http://ds.temk.org/
+
