@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <limits>
 
 #include <ds/utils.h>
 #include <ds/column.h>
@@ -149,7 +150,7 @@ create(column &col, const string &delim, const string &quote) {
 }
 
 void usage(ostream &out, const string &prog)  {
-  out << "Usage: " << prog << "options* input output" << endl
+  out << "Usage: " << prog << " options* input output" << endl
       << TAB << "input" << TAB "valid path to data storage"  << endl
       << TAB << "output" << TAB "valid path to output scv file or '-' for stdin"  << endl
       << TAB << "Options:" << endl
@@ -172,7 +173,7 @@ parse_params(int argc, char **argv, options &opt) {
 
   if (argc < 3) {
       usage(cerr, argv[0]);
-      return false;
+      return 1;
     }
 
   for (int k = 1; k < argc; ++ k) {
@@ -211,11 +212,25 @@ parse_params(int argc, char **argv, options &opt) {
       opt.delim = "\t";
     }
 
+  if (opt.input.empty()) {
+      cerr << "Error: *** Not specified input file ***" << endl << endl;
+      usage(cerr, argv[0]);
+      return -1;
+    }
+
+  if (opt.output.empty()) {
+      cerr << "Error: *** Not specified output file ***" << endl << endl;
+      usage(cerr, argv[0]);
+      return -1;
+    }
+
   return 0;
 }
 
 void
 convert(storage &stor, ostream &out, options &opt) {
+  out.precision(numeric_limits<double>::digits10);
+
   vector<printable_column *> cols;
   for (size_t k = 0; k < stor.cols() - 1; ++ k) {
       cols.push_back(create(stor[k], opt.delim, opt.quote));
