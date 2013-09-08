@@ -348,7 +348,7 @@ driver_dir::read_dictionary(lookup &l) {
 
 	if (rd == sz) {
 		l.set(data, rd);
-	}
+    }
 	delete [] data;	
 	
 	if (rd != sz) {

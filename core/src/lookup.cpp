@@ -246,16 +246,16 @@ lookup_impl<T, N>::set(const void *str, size_t total_bytes) {
 				warn << "lookup::set: generated index out of range: " << n << " >= " << numeric_limits<N>::max()  << endl;
 		}
 
-		string_container entry;
+        string_container entry;
 		entry.len  = str_length<T>(t);
 		entry.siz = sizeof(T);
 		entry.str = str_dup<T>(t, entry.len);
 		
 		idx_to_str_.push_back(entry);
 		str_to_idx_.insert( make_pair( entry, n ) );
-		
-		t           += entry.len + 1;
-		total_bytes -= entry.len + 1;
+
+        t           += entry.len + 1;
+        total_bytes -= (entry.len + 1) * sizeof(T);
 	}
 }
 
