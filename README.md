@@ -45,3 +45,6 @@ AS IS, FREE for Non-Commercial usage
 ## Site and documentations
 http://ds.temk.org/
 
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/2123e41a0d307e62b6d53e7a38054725 "githalytics.com")](http://githalytics.com/temk/ds)
+
