@@ -480,8 +480,7 @@ jni_read(column *col, JNIEnv *env, jarray data, jarray indexes, int idx_siz) {
 }
 
 static void 
-jni_write(column *col, JNIEnv *env, jarray data) {
-	size_t num = env ->GetArrayLength(data);
+jni_write(column *col, JNIEnv *env, jarray data, jlong num) {
 	
 	if (is_str(col->type())) {
 		col ->append(data, num);
@@ -508,11 +507,11 @@ JNICALL Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jobject data, jo
 }
 
 JNIEXPORT void 
-JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data) {
+JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data, jlong num) {
 	column *col = NULL;
 	try {		
 		get_handle(env, self, col);
-		jni_write(col, env, static_cast<jarray>(data));
+        jni_write(col, env, static_cast<jarray>(data), num);
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
 	}

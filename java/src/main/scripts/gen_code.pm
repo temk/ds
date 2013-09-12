@@ -42,7 +42,17 @@ print $fd <<__END_OF_MARK__;
      * \@return this column 
     **/
     public Column append($type [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends $type array to column
+     * \@param data - data to append 
+     * \@return this column 
+    **/
+    public Column append($type [] data, long len) {
+        write(data, len);
         return this;
     }
 

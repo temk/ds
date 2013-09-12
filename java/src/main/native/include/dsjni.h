@@ -19,11 +19,8 @@ extern "C" {
 	
     JNIEXPORT void JNICALL Java_org_temk_ds_Column_truncate(JNIEnv *env, jobject self, jlong new_length);    
 	
-//	JNIEXPORT void JNICALL Java_org_temk_ds_Column_append(JNIEnv *env, jobject self, jobject array);	
-//  JNIEXPORT jobject JNICALL Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jlong offset, jlong num, jobject indexes, jobject data);    
-
     JNIEXPORT void JNICALL Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jobject data, jobject indexes, jint idx_siz, jlong offset, jlong num);
-    JNIEXPORT void JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data);
+    JNIEXPORT void JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data, jlong num);
 
 
     JNIEXPORT jlong JNICALL Java_org_temk_ds_Column_getIndex(JNIEnv *env, jobject self);

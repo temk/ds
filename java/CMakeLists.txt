@@ -18,6 +18,9 @@ if (DS_BUILD_CORE)
 
 		add_library(dsjni  SHARED ${SOURCES})
 
+        link_directories(${ds-core_BINARY_DIR})
+		target_link_libraries(dsjni ds) 
+
 		set(CMAKE_JAVA_TARGET_OUTPUT_NAME ds)
 		add_jar(java src/main/java/org/temk/ds/*.java)
 

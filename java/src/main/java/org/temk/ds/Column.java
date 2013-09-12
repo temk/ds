@@ -7,15 +7,28 @@ public class Column {
     private String name;
     private DataStorage parent;
     
-    private native void read(Object data, Object indexes, int idxSiz, long offset, long num);
-    private native void write(Object data);
-    
     public Column(String name, long handle, DataStorage parent) {
         this.name = name;
         this.handle = handle;
         this.parent = parent;
         parent.columns.put(handle, this);
     }
+
+    /**
+     * read column data into an array
+     * @param data - array to read into
+     * @param indexes - array of indexes
+     * @param idxSiz - size of each index (4 or 8)
+     * @param offset - offset to read from
+     * @param num    - number of elements to read
+     */
+    public native void read(Object data, Object indexes, int idxSiz, long offset, long num);
+    
+    /**
+     * write data to column
+     * @param data - an array of primitives or string
+     */
+    public native void write(Object data, long num);
     
     /**
      * remove current column
@@ -75,7 +88,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(boolean [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends boolean array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(boolean [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -151,7 +174,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(byte [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends byte array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(byte [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -227,7 +260,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(short [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends short array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(short [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -303,7 +346,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(int [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends int array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(int [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -379,7 +432,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(long [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends long array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(long [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -455,7 +518,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(float [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends float array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(float [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -531,7 +604,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(double [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends double array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(double [] data, long len) {
+        write(data, len);
         return this;
     }
 
@@ -607,7 +690,17 @@ public class Column {
      * @return this column 
     **/
     public Column append(String [] data) {
-        write(data);
+        write(data, data.length);
+        return this;
+    }
+
+    /**
+     * Appends String array to column
+     * @param data - data to append 
+     * @return this column 
+    **/
+    public Column append(String [] data, long len) {
+        write(data, len);
         return this;
     }
 
