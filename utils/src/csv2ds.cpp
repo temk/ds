@@ -18,7 +18,7 @@ using namespace std;
 
 static int convert(istream &in, storage &stor, options &opt);
 static void count_columns(const string &, options &opt);
-static void split(const string &line, vector<const char *> &s, vector<const char *> &e, options &opt);
+static bool split(const string &line, vector<const char *> &s, vector<const char *> &e, options &opt);
 static void set_names(vector<const char *> &s, vector<const char *> &e, options &opt);
 static void remove_quote(const char *&s, const char *&e, char quote);
 static void fill_types(istream &in, string line, vector<string> &cache, options &opt);
@@ -94,7 +94,10 @@ convert(istream &in, storage &stor, options &opt) {
 
   int rows = 0;
   for (int k = 0; k < cache.size(); ++ k) {
-    split(cache[k], s_token, e_token, opt);
+    if (!split(cache[k], s_token, e_token, opt)) {
+      cerr << "Error at row " << rows << endl;
+      return -1;
+    }
     for (int col = 0; col < opt.col_limit; ++ col) {
       if (!appenders[col](stor.column_at(col), s_token[col], e_token[col], opt)) {
         cerr << "Fail to parse value at row "
@@ -108,7 +111,10 @@ convert(istream &in, storage &stor, options &opt) {
   }
 
   while(getline(in, line) && line.length() > 0) {
-    split(line, s_token, e_token, opt);
+    if (!split(line, s_token, e_token, opt)) {
+      cerr << "Error at row " << rows << endl;
+      return -1;
+    }
     for (int col = 0; col < opt.col_limit; ++ col) {
       if (!appenders[col](stor.column_at(col), s_token[col], e_token[col], opt)) {
         cerr << "Fail to parse value at row "
@@ -147,7 +153,7 @@ count_columns(const string &line, options &opt) {
   }
 }
 
-void
+bool
 split(const string &line, vector<const char *> &s, vector<const char *> &e, options &opt) {
   int s_idx = 0, e_idx = 0;
   const char *p = line.c_str();
@@ -175,6 +181,12 @@ split(const string &line, vector<const char *> &s, vector<const char *> &e, opti
   if (e_idx < s_idx) {
     e[e_idx] = p - 1;
   }
+
+  if (s_idx < opt.col_limit) {
+    return false;
+  }
+
+  return true;
 }
 
 void
