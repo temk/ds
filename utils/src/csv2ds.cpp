@@ -49,6 +49,11 @@ main(int argc, char **argv) {
     } else {
       ifstream in(opt.input.c_str());
 
+      if (!in) {
+        cerr << "File  " << opt.input << " not found. Abort." << endl;
+        return -1;
+      }
+
       char buffer[INPUT_BUF_SIZ];
       in.rdbuf() ->pubsetbuf(buffer, INPUT_BUF_SIZ);
 
