@@ -218,9 +218,10 @@ fill_types(istream &in, string line, vector<string> &cache, options &opt) {
   vector<type_t> found_types(opt.types.begin(), opt.types.end());
 
   for (int r = 0; r < opt.guess_rows; ++ r) {
+    split(line, s_token, e_token, opt);
+
     for (int k = 0; k < opt.col_limit; ++ k) {
       if (opt.types[k] == DS_T_INVALID) {
-        split(line, s_token, e_token, opt);
         type_t t = guess_type(s_token[k], e_token[k], opt);
         if (found_types[k] < t) {
           found_types[k] = t;
@@ -259,7 +260,7 @@ guess_type(const char *s, const char *e, options &opt) {
 
   char *p = NULL;
   long l = strtol(s, &p, 10);
-  if (p == s + 1) {
+  if (p == e + 1) {
     if (l <= numeric_limits<int8_t>::max() && l >= numeric_limits<int8_t>::min())
         return DS_T_INT8;
     else if (l <= numeric_limits<int16_t>::max() && l >= numeric_limits<int16_t>::min())
@@ -271,7 +272,7 @@ guess_type(const char *s, const char *e, options &opt) {
   }
 
   double d = strtod(s, &p);
-  if (p == s + 1) {
+  if (p == e + 1) {
     return DS_T_FLOAT64;
   }
 
