@@ -86,9 +86,9 @@ convert(istream &in, storage &stor, options &opt) {
     getline(in, line);
   }
 
-  fill_types_by_name(opt);
   cache.push_back(line);
   fill_types(in, line, cache, opt);
+  fill_types_by_name(opt);
 
   vector<appender_t> appenders;
   create_columns(stor, appenders, opt);

@@ -216,7 +216,7 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
         return -1;
       }
 
-      if (endp == param.c_str() + param.length()) {
+      if (endp != param.c_str() + param.length()) {
         opt.name_with_type.push_back(make_pair(param.substr(2), t));
         continue;
       }
