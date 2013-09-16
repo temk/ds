@@ -26,6 +26,7 @@ namespace csv2ds {
     type_t str_type;
     vector<type_t> types;
     vector<string> names;
+    vector< pair<string, type_t> > name_with_type; // option -t<name>
   };
 
   void usage(ostream &out, const string &prog);

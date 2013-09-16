@@ -3,6 +3,7 @@ using namespace ds;
 using namespace csv2ds;
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 using namespace std;
 
@@ -54,6 +55,7 @@ csv2ds::usage(ostream &out, const string &prog)  {
       << TAB << TAB << "-n "  << TAB << "Read column names as a first line from csv" << endl
       << TAB << TAB << "-n<number> <name>"  << TAB << "Set name <name> for column #<number>" << endl
       << TAB << TAB << "-t<number> <type>"  << TAB << "Set type <type> for column #<number>" << endl
+      << TAB << TAB << "-t<name> <type>"  << TAB << "Set type <type> for column named <name>" << endl
       << TAB << TAB << "-s<number>"  << TAB << "Set default string element size. Valid nnumber is 8, 16 or 32." << endl
       << TAB << TAB << "-[Gg]<number>"  << TAB << "guess column types based on <number> first rows." << endl
       << TAB << TAB << "-c<number>"  << TAB << "process only <number> first columns" << endl
@@ -197,22 +199,13 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
     }
 
     if (param[1] == 't') {
-      int num = 0;
-      sscanf(param.c_str() + 2, "%d", &num);
-      if (num == 0) {
-        cerr << endl << "Error: *** expected -t<number>, while number > 0. found " << param << " ***" << endl << endl;
-        usage(cerr, argv[0]);
-        return -1;
-      }
+      char *endp = NULL;
+      long num = strtol(param.c_str() + 2, &endp, 10);
 
       if (k == argc - 1) {
         cerr << endl << "Error: *** Invalid input parameter " << argv[k] << " ***" << endl << endl;
         usage(cerr, argv[0]);
         return -1;
-      }
-
-      if (opt.types.size() < num) {
-        opt.types.resize(num, DS_T_INVALID);
       }
 
       type_t t = str_to_type(argv[++ k]);
@@ -221,6 +214,15 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
         cerr << endl << "Error: *** Type " << argv[k] << " not recognized ***" << endl << endl;
         usage(cerr, argv[0]);
         return -1;
+      }
+
+      if (endp == param.c_str() + param.length()) {
+        opt.name_with_type.push_back(make_pair(param.substr(2), t));
+        continue;
+      }
+
+      if (opt.types.size() < num) {
+        opt.types.resize(num, DS_T_INVALID);
       }
 
       opt.types[num - 1] = t;

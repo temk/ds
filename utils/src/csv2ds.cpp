@@ -21,6 +21,7 @@ static void count_columns(const string &, options &opt);
 static bool split(const string &line, vector<const char *> &s, vector<const char *> &e, options &opt);
 static void set_names(vector<const char *> &s, vector<const char *> &e, options &opt);
 static void remove_quote(const char *&s, const char *&e, char quote);
+static void fill_types_by_name(options &opt);
 static void fill_types(istream &in, string line, vector<string> &cache, options &opt);
 static type_t guess_type(const char *s, const char *e, options &opt);
 static void create_columns(storage &ds, vector<appender_t> &appenders, options &opt);
@@ -85,6 +86,7 @@ convert(istream &in, storage &stor, options &opt) {
     getline(in, line);
   }
 
+  fill_types_by_name(opt);
   cache.push_back(line);
   fill_types(in, line, cache, opt);
 
@@ -203,6 +205,18 @@ set_names(vector<const char *> &s, vector<const char *> &e, options &opt) {
 void
 remove_quote(const char *&s, const char *&e, char quote) {
   for (;*s == quote && *e == quote; ++ s, -- e);
+}
+
+void
+fill_types_by_name(options &opt) {
+  for (int j = 0; j < opt.name_with_type.size(); ++ j) {
+    for (int k = 0; k < opt.names.size(); ++ k) {
+      if (opt.names[k] == opt.name_with_type[j].first)  {
+        opt.types[k] = opt.name_with_type[j].second;
+        continue;
+      }
+    }
+  }
 }
 
 void
