@@ -8,8 +8,9 @@ file(GLOB_RECURSE SOURCES src *.cpp)
 file(GLOB_RECURSE HEADERS include *.h)
 
 set(EXT_HEADER include/ds/types.h
-               include/ds/error.h 
-               include/ds/column.h 
+               include/ds/utils.h
+               include/ds/error.h
+               include/ds/column.h
                include/ds/storage.h)
 
 include_directories(include)
