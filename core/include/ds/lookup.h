@@ -6,33 +6,23 @@
 
 using namespace std;
 namespace ds {
-	struct string_container {
-		int len;
-		int siz;
-		const void *str;
-	};
-	
-	class string_accessor {
-	public:
-        virtual void get(size_t, const void *, string_container &) = 0;
-        virtual void set(size_t, const string_container &, void *) = 0;
-	};
+  class string_accessor;
 
-	class lookup : public error_handler {
-	public:
-		virtual ~lookup();
-		virtual void lookup_index(const void *str, void *val, size_t from, size_t num) = 0;
-		virtual void lookup_value(const void *val, void *str, size_t from, size_t num) = 0;
+  class lookup : public error_handler {
+  public:
+    virtual ~lookup();
+    virtual void lookup_index(const void *str, void *val, size_t from, size_t num) = 0;
+    virtual void lookup_value(const void *val, void *str, size_t from, size_t num) = 0;
 
-		virtual size_t count() const = 0;
-		virtual void get(void *str, size_t *len, int &el_siz) const = 0;
-		virtual void set(const void *str, size_t total_bytes) = 0;
+    virtual size_t count() const = 0;
+    virtual void get(void *str, size_t *len, int &el_siz) const = 0;
+    virtual void set(const void *str, size_t total_bytes) = 0;
 
-        virtual void set_string_accessor(string_accessor *) = 0;
-		
-		virtual const string &key() const = 0;
-		static lookup *create(const error_handler &ref, const string &key, type_t int_type, type_t ext_type);
-	};
+    virtual void set_string_accessor(string_accessor *) = 0;
+
+    virtual const string &key() const = 0;
+    static lookup *create(const error_handler &ref, const string &key, type_t int_type, type_t ext_type);
+  };
 }
 
 

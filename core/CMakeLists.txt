@@ -11,6 +11,7 @@ set(EXT_HEADER include/ds/types.h
                include/ds/utils.h
                include/ds/error.h
                include/ds/column.h
+               include/ds/strings.h
                include/ds/storage.h)
 
 include_directories(include)

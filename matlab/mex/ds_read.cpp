@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdexcept>
 
-#include "utils.h"
+#include <ds/mx/utils.h>
 
 using namespace ds;
 using namespace std;

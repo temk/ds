@@ -1,5 +1,6 @@
 #include <ds/utils.h>
 #include <ds/lookup.h>
+#include <ds/strings.h>
 
 #include <string.h>
 

@@ -1,5 +1,5 @@
-#include "dsjni.h"
-#include "jni_string_accessor.h"
+#include <ds/jni/strings.h>
+#include <ds/jni/dsjni.h>
 
 #include <ds/types.h>
 #include <ds/utils.h>
@@ -15,13 +15,13 @@ using namespace std;
 typedef pair<JNIEnv *, jobjectArray> str_pair_t;
 
 // ======================================================================================
-string_accessor * get_string_accessor(JNIEnv * env, type_t type) {
-	switch(type) {
-        case DS_T_STRING8:  return new jni_string_accessor<char>(env);
-        case DS_T_STRING16: return new jni_string_accessor<short>(env);
-        case DS_T_STRING32: return new jni_string_accessor<int>(env);
-		default: return NULL;
-	}
+string_accessor * get_string_accessor(JNIEnv * env, type_t type, bool singletone = true) {
+  switch(type) {
+      case DS_T_STRING8:  return new jni_string_accessor<char>(env, singletone);
+      case DS_T_STRING16: return new jni_string_accessor<short>(env, singletone);
+      case DS_T_STRING32: return new jni_string_accessor<int>(env, singletone);
+      default: return NULL;
+  }
 }
 
 // ======================================================================================
