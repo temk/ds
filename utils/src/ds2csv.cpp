@@ -156,7 +156,7 @@ void usage(ostream &out, const string &prog)  {
       << TAB << "Options:" << endl
       << TAB << TAB << "-f" << TAB << "Removes output file if it exists, befor write" << endl
       << TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
-      << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is '\"' " << endl
+      << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is empty string " << endl
       << TAB << TAB << "-n "  << TAB << "Write column names as a first line" << endl
       << TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
       << endl << endl
@@ -166,7 +166,7 @@ void usage(ostream &out, const string &prog)  {
 int
 parse_params(int argc, char **argv, options &opt) {
   opt.delim = ',';
-  opt.quote = "\"";
+  opt.quote = "";
   opt.names = false;
   opt.force = false;
   int file_count = 0;
