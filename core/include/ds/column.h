@@ -66,7 +66,7 @@ namespace ds {
 		inline type_t type() const;
 		inline type_t ext_type() const;
 		
-		void set_string_accessor(const string_accessor *);
+        void set_string_accessor(string_accessor *);
 	};
 
 	// =============================================================================

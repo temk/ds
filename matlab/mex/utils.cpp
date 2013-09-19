@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "mx_string_accessor.h"
 
 #include <ds/utils.h>
 #include <ds/storage.h>
@@ -142,24 +143,6 @@ ds::str_to_mode(const char *s) {
 	
 	return mode;
 }
-
-template<typename T>
-class mx_string_accessor : public string_accessor {
-public:
-	void get(size_t k, const void *p, string_container &s) const {
-		const mxArray *arr = mxGetCell(static_cast<const mxArray *>(p), k);
-		s.siz = sizeof(mxChar);
-		s.len = mxGetNumberOfElements(arr);
-		s.str = mxGetData(arr);
-	}
-	
-	void set(size_t k, const string_container &s, void *p ) const {
-		mwSize dim[2] = {1, s.len};		
-		mxArray *arr = mxCreateCharArray(2, &dim[0]);
-		ds::str_copy<T, mxChar>(static_cast<const T *>(s.str), mxGetChars(arr), s.len);
-		mxSetCell(static_cast<mxArray *>(p), k, arr);
-	}
-};
 
 
 string_accessor * 

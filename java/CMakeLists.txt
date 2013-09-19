@@ -4,11 +4,14 @@ project(dsjni)
 
 if (DS_BUILD_CORE)
 	if (DS_BUILD_JAVA)
-		find_package(Java REQUIRED)
-		find_package(JNI REQUIRED)
+                find_package(Java REQUIRED)
+#                find_package(JNI REQUIRED)
 		include(UseJava)
 
 
+                set(JNI_INCLUDE_DIRS ${JAVA_ROOT}/include
+                                     ${JAVA_ROOT}/include/linux)
+		
 		file(GLOB_RECURSE SOURCES src src/main/native/src/*.cpp)
 		file(GLOB_RECURSE HEADERS include src/main/native/include/*.h)
 

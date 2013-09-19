@@ -70,7 +70,7 @@ filter_str::get(const void *indexes, int idx_siz, size_t num, void *data) {
 }
 
 void 
-filter_str::set_string_accessor(const string_accessor *acc) {
+filter_str::set_string_accessor(string_accessor *acc) {
 	lookup_ ->set_string_accessor(acc);
 }
 

@@ -27,7 +27,7 @@ namespace ds {
 		void get(size_t offs, size_t num, void *data);
 		void get(const void *indexes, int idx_siz, size_t num, void *data);
 		
-		void set_string_accessor(const string_accessor *);
+        void set_string_accessor(string_accessor *);
 		
 	};		
 }

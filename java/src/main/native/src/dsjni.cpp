@@ -1,4 +1,5 @@
 #include "dsjni.h"
+#include "jni_string_accessor.h"
 
 #include <ds/types.h>
 #include <ds/utils.h>
@@ -14,45 +15,11 @@ using namespace std;
 typedef pair<JNIEnv *, jobjectArray> str_pair_t;
 
 // ======================================================================================
-template<typename T>
-class java_string_accessor : public string_accessor {
-private:
-	JNIEnv *env_;
-	
-public:
-	java_string_accessor(JNIEnv *env) : env_(env) {}
-	
-	void get(size_t k, const void *data, string_container &s) const {
-		jobjectArray array = (jobjectArray)data;
-		
-		jstring str = (jstring )env_ ->GetObjectArrayElement(array, k);
-		s.siz = sizeof(jchar);
-		s.len = env_ ->GetStringLength(str);
-		s.str = env_ ->GetStringCritical(str, 0);
-		
-		env_ ->ReleaseStringCritical(str, (jchar *)s.str);
-	}
-	
-	void set(size_t k, const string_container &s, void *array ) const {
-		jstring str = NULL;
-		if (s.siz == sizeof(jchar)) {
-			str = env_ ->NewString((jchar *)s.str, s.len);
-		} else {
-			jchar *tmp = new jchar[s.len];
-			str_copy<T, jchar>((const T*)s.str, (jchar *)tmp, s.len);
-			str = env_ ->NewString(tmp, s.len);
-			delete [] tmp;
-		}
-		env_ ->SetObjectArrayElement((jobjectArray)array, k, str);
-	}
-};
-
-
 string_accessor * get_string_accessor(JNIEnv * env, type_t type) {
 	switch(type) {
-		case DS_T_STRING8:  return new java_string_accessor<char>(env);
-		case DS_T_STRING16: return new java_string_accessor<short>(env);
-		case DS_T_STRING32: return new java_string_accessor<int>(env);
+        case DS_T_STRING8:  return new jni_string_accessor<char>(env);
+        case DS_T_STRING16: return new jni_string_accessor<short>(env);
+        case DS_T_STRING32: return new jni_string_accessor<int>(env);
 		default: return NULL;
 	}
 }

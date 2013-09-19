@@ -47,8 +47,8 @@ namespace ds {
 	template<typename T>
 	class default_string_accessor : public string_accessor {
 	public:	
-		void get(size_t k, const void *, string_container &) const;
-		void set(size_t k, const string_container &, void * ) const;
+        void get(size_t k, const void *, string_container &);
+        void set(size_t k, const string_container &, void * );
 	};
 	
 	template<typename T, typename N>
@@ -63,7 +63,7 @@ namespace ds {
 		idx_to_str_t idx_to_str_;
 		
 		default_string_accessor<T> default_string_accessor_;
-		const string_accessor * string_accessor_;
+        string_accessor * string_accessor_;
 		
 	public:	
 		lookup_impl(const string &);
@@ -72,7 +72,7 @@ namespace ds {
 		void lookup_value(const void *val, void *str, size_t from, size_t num);
 
 		const string &key() const;
-		void set_string_accessor(const string_accessor *);
+        void set_string_accessor(string_accessor *);
 
 		size_t count() const;
 		void get(void *str, size_t *len, int &el_siz) const;
@@ -149,7 +149,7 @@ lookup::create(const error_handler &ref, const string &key, type_t int_type, typ
 
 // ===================================================================================================
 template<typename T>void
-default_string_accessor<T>::get(size_t k, const void *p, string_container &s) const {
+default_string_accessor<T>::get(size_t k, const void *p, string_container &s) {
 	const T * const*v = reinterpret_cast<const T * const*>(p);
 	s.siz = sizeof(T);
 	s.len = str_length(static_cast<const T *>(v[k]));
@@ -157,7 +157,7 @@ default_string_accessor<T>::get(size_t k, const void *p, string_container &s) co
 	
 }
 template<typename T>void
-default_string_accessor<T>::set(size_t k, const string_container &s, void *p ) const {
+default_string_accessor<T>::set(size_t k, const string_container &s, void *p ) {
 	const T * *v = static_cast<const T * *>(p);
 	v[k] = static_cast<const T*>(s.str);
 }
@@ -266,7 +266,7 @@ lookup_impl<T, N>::key() const {
 }
 
 template<typename T, typename N>void 
-lookup_impl<T, N>::set_string_accessor(const string_accessor *acc) {
+lookup_impl<T, N>::set_string_accessor(string_accessor *acc) {
 	if (acc == NULL) {
 		string_accessor_ = & default_string_accessor_;
 	} else {

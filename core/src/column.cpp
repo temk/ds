@@ -126,7 +126,7 @@ column::init_filters() {
 }
 
 void 
-column::set_string_accessor(const string_accessor *acc) {
+column::set_string_accessor(string_accessor *acc) {
 	if (is_str(int_type_)) {
 		warn << "column::set_string_accessor: column " << name_ << " has non-string type " << int_type_ << ". Ignored.";
 	}

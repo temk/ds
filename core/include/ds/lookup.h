@@ -14,8 +14,8 @@ namespace ds {
 	
 	class string_accessor {
 	public:
-		virtual void get(size_t, const void *, string_container &) const = 0;
-		virtual void set(size_t, const string_container &, void *) const = 0;
+        virtual void get(size_t, const void *, string_container &) = 0;
+        virtual void set(size_t, const string_container &, void *) = 0;
 	};
 
 	class lookup : public error_handler {
@@ -28,7 +28,7 @@ namespace ds {
 		virtual void get(void *str, size_t *len, int &el_siz) const = 0;
 		virtual void set(const void *str, size_t total_bytes) = 0;
 
-		virtual void set_string_accessor(const string_accessor *) = 0;
+        virtual void set_string_accessor(string_accessor *) = 0;
 		
 		virtual const string &key() const = 0;
 		static lookup *create(const error_handler &ref, const string &key, type_t int_type, type_t ext_type);
