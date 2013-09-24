@@ -83,7 +83,7 @@ public class DataStorage {
     /**
      * @return list of all columns
     **/
-    Collection<Column> getColumns() {
+    public Collection<Column> getColumns() {
         return columns.values();
     }
     
