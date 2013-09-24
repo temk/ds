@@ -248,8 +248,11 @@ fill_types(istream &in, string line, vector<string> &cache, options &opt) {
       }
     }
 
-    getline(in, line);
-    cache.push_back(line);
+    if (getline(in, line) && line.length() > 0) {
+      cache.push_back(line);
+    } else {
+      break;
+    }
   }
 
   for (int k = 0; k < opt.col_limit; ++ k) {
