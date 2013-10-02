@@ -26,6 +26,16 @@ using namespace std;
 
 #define FILE_MODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)
 
+static void
+parse_meta(const string &str, string &key, string &val) {
+  int k1 = str.find('"', 0);
+  int k2 = str.find('"', k1 + 1);
+  int k3 = str.find('"', k2 + 1);
+  int k4 = str.find('"', k3 + 1);
+
+  key = str.substr(k1 + 1, k2 - k1 - 1);
+  val = str.substr(k3 + 1, k4 - k3 - 1);
+}
 
 template<typename T>void
 driver_dir::read_field(istream &in, const string &magic, T *val) {
@@ -404,8 +414,9 @@ driver_dir::read_index(storage &stor) {
 				warn << "driver_dir::read_index: column " << col_val << " ignored." << endl;
 			}
         } else if (col_magic == "meta:") {
-            string key, val;
-            in >> key >> val;
+            string line, key, val;
+            getline(in, line);
+            parse_meta(line, key, val);
             stor.tags().set(key, val);
         } else if (col_magic != "__END__") {
             warn << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
@@ -441,8 +452,19 @@ driver_dir::read_index(column &col) {
 	}
 	read_field(in, "endian:", &endian);
 	read_field(in, "length:", &length);
-	read_field(in, "__END__", (char *)NULL);
-	
+
+    string word;
+    while((in >> word) && (word != "__END__")) {
+      if (word == "meta:") {
+        string line, key, val;
+        getline(in, line);
+        parse_meta(line, key, val);
+        col.tags().set(key, val);
+      } else {
+        warn << "driver_dir::read_index: column '" << col.name() << "' unknown tag '" << word << "'" << endl;
+      }
+    }
+
 	if (name != col.name()) {
 		warn << "driver_dir::read_index: column '" << col.name() << "' had different name '" << name << "'" << endl;
 	}

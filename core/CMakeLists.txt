@@ -7,7 +7,8 @@ set(LIB_NAME ds)
 file(GLOB_RECURSE SOURCES src *.cpp)
 file(GLOB_RECURSE HEADERS include *.h)
 
-set(EXT_HEADER include/ds/types.h
+set(EXT_HEADER include/ds/meta.h
+               include/ds/types.h
                include/ds/utils.h
                include/ds/error.h
                include/ds/column.h

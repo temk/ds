@@ -1,7 +1,6 @@
 #include <ds/meta.h>
 #include <stdexcept>
 
-
 using namespace ds;
 using namespace std;
 
@@ -32,6 +31,6 @@ meta::set(const string &key, const string &val) {
 void
 meta::keys(vector<string> &out) const {
     for (map_t::const_iterator i = map_.begin(); i != map_.end(); ++ i) {
-        out.push_back(i ->second);
+        out.push_back(i ->first);
     }
 }

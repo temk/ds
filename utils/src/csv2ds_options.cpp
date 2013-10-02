@@ -59,6 +59,9 @@ csv2ds::usage(ostream &out, const string &prog)  {
       << TAB << TAB << "-s<number>"  << TAB << "Set default string element size. Valid nnumber is 8, 16 or 32." << endl
       << TAB << TAB << "-[Gg]<number>"  << TAB << "guess column types based on <number> first rows." << endl
       << TAB << TAB << "-c<number>"  << TAB << "process only <number> first columns" << endl
+      << TAB << TAB << "-m<number> <key> <value>"  << TAB << "add user defined metadata to column" << endl
+      << TAB << TAB << "-m<name> <key> <value>"  << TAB << "add user defined metadata to column" << endl
+      << TAB << TAB << "-m <key> <value>"  << TAB << "add user defined metadata to data storage" << endl
       << TAB << TAB << TAB << "For '-g' options, the type will choosen betwenn string or float64. If '-G' specified, then more tightly type guessing" << endl
       << TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
       << endl
@@ -195,6 +198,34 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
         opt.names.resize(num);
       }
       opt.names[num - 1] = argv[++ k];
+      continue;
+    }
+
+    if (param[1] == 'm') {
+      char *endp = NULL;
+      long num = strtol(param.c_str() + 2, &endp, 10);
+
+      if (k + 2 >= argc) {
+        cerr << endl << "Error: *** Invalid input parameter " << argv[k] << " ***" << endl << endl;
+        usage(cerr, argv[0]);
+        return -1;
+      }
+
+      struct user_meta m;
+      m.global = param.length() == 2;
+      m.key = argv[++ k];
+      m.val = argv[++ k];
+
+      if (!m.global) {
+        if (endp != param.c_str() + param.length()) {
+          m.col_name = param.substr(2);
+          m.col_num  = -1;
+        } else {
+          m.col_num  = num;
+        }
+      }
+
+      opt.meta.push_back(m);
       continue;
     }
 

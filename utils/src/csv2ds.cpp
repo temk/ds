@@ -25,6 +25,7 @@ static void fill_types_by_name(options &opt);
 static void fill_types(istream &in, string line, vector<string> &cache, options &opt);
 static type_t guess_type(const char *s, const char *e, options &opt);
 static void create_columns(storage &ds, vector<appender_t> &appenders, options &opt);
+static void fill_meta(storage &ds, options &opt);
 
 #define INPUT_BUF_SIZ (1 << 20) // 1M
 int
@@ -97,6 +98,7 @@ convert(istream &in, storage &stor, options &opt) {
 
   vector<appender_t> appenders;
   create_columns(stor, appenders, opt);
+  fill_meta(stor, opt);
   stor.flush();
 
   int rows = 0;
@@ -320,4 +322,22 @@ create_columns(storage &ds, vector<appender_t> &appenders, options &opt) {
   ds.flush();
 }
 
-
+void
+fill_meta(storage &stor, options &opt) {
+  for (size_t k = 0; k < opt.meta.size(); ++ k) {
+    const user_meta &m = opt.meta[k];
+    if (m.col_num < 0) {
+      if (m.col_name.length() > 0) {
+        column &col = stor.column_at(m.col_name);
+        col.tags().set(m.key, m.val);
+      } else {
+        stor.tags().set(m.key, m.val);
+      }
+    } else {
+      if (m.col_num < opt.col_limit) {
+        column &col = stor.column_at(m.col_num);
+        col.tags().set(m.key, m.val);
+      }
+    }
+  }
+}

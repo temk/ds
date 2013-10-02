@@ -13,6 +13,14 @@ using namespace std;
 #define DEFAULT_LINE_LENGTH 1024
 
 namespace csv2ds {
+  struct user_meta {
+    bool global;
+    int col_num;
+    string col_name;
+    string key;
+    string val;
+  };
+
   struct options {
     int col_limit;
     int guess_rows;
@@ -27,6 +35,7 @@ namespace csv2ds {
     vector<type_t> types;
     vector<string> names;
     vector< pair<string, type_t> > name_with_type; // option -t<name>
+    vector<user_meta> meta;
   };
 
   void usage(ostream &out, const string &prog);
