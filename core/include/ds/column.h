@@ -2,6 +2,8 @@
 #define __DS_COLUMN_H__
 #include <ds/types.h>
 #include <ds/error.h>
+#include <ds/meta.h>
+
 
 #include <string>
 #include <iostream>
@@ -29,7 +31,8 @@ namespace ds {
 		
 		filter *filter_;
 		storage &storage_;
-		
+        meta meta_;
+
 	protected:
 		void push_filter(filter *);
 		virtual void init_filters();
@@ -65,7 +68,10 @@ namespace ds {
 		inline endian_t endian() const;
 		inline type_t type() const;
 		inline type_t ext_type() const;
-		
+
+        inline const meta &tags() const;
+        inline meta &tags();
+
         void set_string_accessor(string_accessor *);
 	};
 
@@ -89,7 +95,15 @@ namespace ds {
 	inline size_t column::length() const {
 		return length_;
 	}
-	
+
+    inline const meta &column::tags() const {
+        return meta_;
+    }
+
+    inline meta &column::tags() {
+        return meta_;
+    }
+
 	template<typename T> int 
 	column::read(const T* indexes, size_t num, void *dst) {
 		return read(indexes, sizeof(T), num, dst);

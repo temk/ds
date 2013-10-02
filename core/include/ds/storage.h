@@ -2,6 +2,7 @@
 #define __DS_STORAGE_H__
 #include <ds/types.h>
 #include <ds/error.h>
+#include <ds/meta.h>
 
 #include <map>
 #include <vector>
@@ -57,6 +58,7 @@ namespace ds {
 		void pop(column *);		
 		void push(column *, ssize_t index = -1);
 		
+        meta meta_;
 	public:
 		storage();
 		storage(const string &path, int mode = DS_O_DEFAULT, size_t buff_siz = DS_BUFF_SIZ);
@@ -96,7 +98,10 @@ namespace ds {
 		inline column & operator[](size_t idx);
 		inline column & operator[](const char *name);
 		inline column & operator[](const string &name);		
-	};
+
+        inline const meta &tags() const;
+        inline meta &tags();
+    };
 
 	// ==============================================================================
 	inline storage::operator bool () const {		
@@ -130,6 +135,15 @@ namespace ds {
 	inline column & storage::operator[](const string &name) {		
 		return column_at(name);
 	}
+
+    inline const meta &storage::tags() const {
+        return meta_;
+    }
+
+    inline meta &storage::tags() {
+        return meta_;
+    }
+
 }
 
 #endif //__DS_STORAGE_H__

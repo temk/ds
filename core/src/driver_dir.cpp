@@ -302,6 +302,11 @@ driver_dir::write_index(const storage &stor) {
 		out << "column: " << stor[k].name() << endl;
 	}
 	
+    vector<string> keys;
+    stor.tags().keys(keys);
+    for (size_t k = 0; k < keys.size(); ++ k) {
+        out << "meta: \"" << keys[k] << "\" \"" <<  stor.tags().get(keys[k]) << "\"" << endl;
+    }
 	out << "__END__" << endl;
 }
 
@@ -324,8 +329,15 @@ driver_dir::write_index(const column &col) {
 	}
 		
 	out << "endian: " << col.endian()  << endl
-		<< "length: " << col.length()  << endl
-		<< "__END__" << endl;	
+        << "length: " << col.length()  << endl;
+
+    vector<string> keys;
+    col.tags().keys(keys);
+    for (size_t k = 0; k < keys.size(); ++ k) {
+        out << "meta: \"" << keys[k] << "\" \"" <<  col.tags().get(keys[k]) << "\"" << endl;
+    }
+
+    out << "__END__" << endl;
 }
 
 void 
@@ -391,8 +403,12 @@ driver_dir::read_index(storage &stor) {
 				warn << "driver_dir::read_index: " << ex.what() << endl;
 				warn << "driver_dir::read_index: column " << col_val << " ignored." << endl;
 			}
-		} else if (col_magic != "__END__") {
-			warn << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
+        } else if (col_magic == "meta:") {
+            string key, val;
+            in >> key >> val;
+            stor.tags().set(key, val);
+        } else if (col_magic != "__END__") {
+            warn << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
 			break;
 		} else {
 			break;
