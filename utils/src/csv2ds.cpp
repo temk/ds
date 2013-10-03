@@ -326,13 +326,11 @@ void
 fill_meta(storage &stor, options &opt) {
   for (size_t k = 0; k < opt.meta.size(); ++ k) {
     const user_meta &m = opt.meta[k];
-    if (m.col_num < 0) {
-      if (m.col_name.length() > 0) {
-        column &col = stor.column_at(m.col_name);
-        col.tags().set(m.key, m.val);
-      } else {
-        stor.tags().set(m.key, m.val);
-      }
+    if (m.global) {
+      stor.tags().set(m.key, m.val);
+    } else if (m.col_num < 0) {
+      column &col = stor.column_at(m.col_name);
+      col.tags().set(m.key, m.val);
     } else {
       if (m.col_num < opt.col_limit) {
         column &col = stor.column_at(m.col_num);
