@@ -180,3 +180,71 @@ storage::push(column *col, ssize_t index) {
 	
 	++ col_num_;
 }
+
+// =================================================================================================================================
+void *ds_open(const char *path, int mode, int buff_siz) {
+  return new ds::storage(path, mode, buff_siz);
+}
+
+void * ds_add_column(void *ds, int c_type, const char *c_name, int c_endian, int index ) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+
+  string name = "";
+  if (c_name != NULL) {
+    name = c_name;
+  }
+
+  ds::type_t   type  = (ds::type_t)c_type;
+  ds::endian_t endian = (ds::endian_t)c_endian;
+  if (endian == DS_E_INVALID) {
+    endian = DS_E_HOST;
+  }
+  ds::column & col = stor ->add(type, name, endian, index);
+  return &col;
+}
+
+void * ds_add_column_str(void *ds, int c_type, int c_dict_type, const char *c_name, int c_endian, int index ) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+
+  string name = "";
+  if (c_name != NULL) {
+    name = c_name;
+  }
+
+  ds::type_t   type  = (ds::type_t)c_type;
+  ds::type_t  dict_type  = (ds::type_t)c_dict_type;
+  ds::endian_t endian = (ds::endian_t)c_endian;
+  if (endian == DS_E_INVALID) {
+    endian = DS_E_HOST;
+  }
+  ds::column & col = stor ->add(type, dict_type, name, endian, index);
+  return &col;
+}
+
+void * ds_get_column_by_name(void *ds, const char *name) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  return &(stor ->column_at(name));
+}
+
+void * ds_get_column_by_index(void *ds, int index) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  return &(stor ->column_at(index));
+}
+
+void ds_add_meta(void *ds, const char *key, const char *val) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  stor ->tags().set(key, val);
+}
+
+void ds_flush(void *ds) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  stor ->flush();
+}
+
+void   ds_close(void *ds) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  stor ->close();
+  delete stor;
+}
+
+// =================================================================================================================================

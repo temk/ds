@@ -10,6 +10,8 @@
 #include <ds/utils.h>
 #include <ds/lookup.h>
 
+#include <stdlib.h>
+
 #include <sstream>
 
 using namespace ds;
@@ -131,5 +133,38 @@ column::set_string_accessor(string_accessor *acc) {
 		warn << "column::set_string_accessor: column " << name_ << " has non-string type " << int_type_ << ". Ignored.";
 	}
 	static_cast<filter_str *>(filter_) ->set_string_accessor(acc);
+}
+
+
+// ==============================================================================================
+void ds_append_uint32(void *ptr, uint32_t val) {
+  ds::column *col = reinterpret_cast<ds::column *>(ptr);
+  col ->append(&val, 1);
+}
+
+void ds_append_uint64_str(void *ptr, const char * str) {
+  uint64_t val = strtol(str, NULL, 10);
+  ds::column *col = reinterpret_cast<ds::column *>(ptr);
+  col ->append(&val, 1);
+}
+
+void ds_append_float64(void *ptr, double val) {
+  ds::column *col = reinterpret_cast<ds::column *>(ptr);
+  col ->append(&val, 1);
+}
+
+void ds_append_str(void *ptr, const char *val) {
+  ds::column *col = reinterpret_cast<ds::column *>(ptr);
+  if (col ->type() == DS_T_STRING8) {
+    col ->append(&val, 1);
+  } else if (col ->type() == DS_T_STRING16) {
+    uint16_t *str = str_dup<uint16_t, char>(val, str_length(val));
+    col ->append(&str, 1);
+    delete str;
+  } else if (col ->type() == DS_T_STRING32) {
+    uint32_t *str = str_dup<uint32_t, char>(val, str_length(val));
+    col ->append(&str, 1);
+    delete str;
+  }
 }
 
