@@ -152,7 +152,7 @@ create(column &col, const string &delim, const string &quote) {
 void usage(ostream &out, const string &prog)  {
   out << "Usage: " << prog << " options* input output" << endl
       << TAB << "input" << TAB "valid path to data storage"  << endl
-      << TAB << "output" << TAB "valid path to output scv file or '-' for stdin"  << endl
+      << TAB << "output" << TAB "valid path to output csv file or '-' for stdout"  << endl
       << TAB << "Options:" << endl
       << TAB << TAB << "-f" << TAB << "Removes output file if it exists, befor write" << endl
       << TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
@@ -288,6 +288,6 @@ main(int argc, char **argv) {
         convert(stor, out, opt);
       }
   } catch(exception &ex) {
-    cerr << "Runtime Error: " << ex.what() << endl;
+    cerr << "Runtime Error: => " << ex.what() << endl;
   }
 }
