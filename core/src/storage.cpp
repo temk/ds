@@ -1,5 +1,6 @@
 #include <ds/storage.h>
 
+#include <ds/utils.h>
 #include <ds/column.h>
 #include <ds/driver.h>
 #include <ds/driver_dir.h>
@@ -186,24 +187,7 @@ void *ds_open(const char *path, int mode, int buff_siz) {
   return new ds::storage(path, mode, buff_siz);
 }
 
-void * ds_add_column(void *ds, int c_type, const char *c_name, int c_endian, int index ) {
-  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
-
-  string name = "";
-  if (c_name != NULL) {
-    name = c_name;
-  }
-
-  ds::type_t   type  = (ds::type_t)c_type;
-  ds::endian_t endian = (ds::endian_t)c_endian;
-  if (endian == DS_E_INVALID) {
-    endian = DS_E_HOST;
-  }
-  ds::column & col = stor ->add(type, name, endian, index);
-  return &col;
-}
-
-void * ds_add_column_str(void *ds, int c_type, int c_dict_type, const char *c_name, int c_endian, int index ) {
+void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, int c_endian, int index ) {
   ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
 
   string name = "";
@@ -217,7 +201,14 @@ void * ds_add_column_str(void *ds, int c_type, int c_dict_type, const char *c_na
   if (endian == DS_E_INVALID) {
     endian = DS_E_HOST;
   }
-  ds::column & col = stor ->add(type, dict_type, name, endian, index);
+
+  if (ds::is_str(type) && (dict_type == DS_T_INVALID)) {
+    dict_type = DS_T_UINT32;
+  }
+
+  ds::column & col = (dict_type == DS_T_INVALID)  ?
+                       stor ->add(type, name, endian, index) :
+                       stor ->add(type, dict_type, name, endian, index);
   return &col;
 }
 

@@ -15,8 +15,8 @@ if (DS_BUILD_MATLAB)
             target_link_libraries(${target} ds)
     endforeach(target)
 
-    install(TARGETS ${targets} DESTINATION ${CMAKE_INSTALL_PREFIX}/matlab/mex)
-    install(FILES ${mat_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/matlab)
+    install(TARGETS ${targets} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/matlab/mex)
+    install(FILES ${mat_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/matlab)
     install(FILES include/ds/mx/strings.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ds/mx)
 endif(DS_BUILD_MATLAB)
 

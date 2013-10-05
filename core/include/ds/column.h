@@ -112,10 +112,7 @@ namespace ds {
 
 // ==============================================================================================
 extern "C" {
-void ds_append_uint32(void *col, uint32_t val);
-void ds_append_uint64_str(void *col, const char *str); // write long passed as str
-void ds_append_float64(void *col, double val);
-void ds_append_str(void *col, const char *);
+  void ds_column_append(void *col, void *, uint32_t len);
 }
 
 #endif // __DS_COLUMN_H__
