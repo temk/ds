@@ -18,7 +18,7 @@ using namespace std;
 void 
 mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    if (nrhs != 3 || nrhs != 4 || !mxIsUint64(prhs[0]) || !mxIsChar(prhs[1])|| !mxIsChar(prhs[2])) {
+    if (nrhs < 3 || nrhs > 4 || !mxIsUint64(prhs[0]) || !mxIsChar(prhs[1])|| !mxIsChar(prhs[2])) {
         mexErrMsgTxt("expected 3 or 4 input arguments: handle, key, value, col (optional)");
 	}
 

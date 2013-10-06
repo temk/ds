@@ -201,6 +201,15 @@ classdef DataStorage < handle
                 end
             end
         end
+        
+        function add_meta(self, key, val, col)
+            if nargin < 4                
+                ds_meta_add(self.handle, key, val);
+            else
+                col = names_to_indexes(self, col);
+                ds_meta_add(self.handle, key, val, uint64(col - 1));
+            end
+        end
     end
     
     methods(Access = private)
