@@ -10,7 +10,7 @@ namespace ds {
 		char *buff_;
 		
 	public:
-		filter_buff(const error_handler &ref, type_t type, size_t siz, size_t cap);
+        filter_buff(const error_handler &ref, type_t type, size_t siz, size_t width, size_t cap);
 		~filter_buff();		
 		
 		void flush();		

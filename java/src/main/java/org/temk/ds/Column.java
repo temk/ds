@@ -4,12 +4,14 @@ import java.nio.ByteOrder;
 
 public class Column {
     private long handle;
+    private int  width;
     private String name;
     private DataStorage parent;
     
-    public Column(String name, long handle, DataStorage parent) {
+    public Column(String name, long handle, int width, DataStorage parent) {
         this.name = name;
         this.handle = handle;
+        this.width  = width;
         this.parent = parent;
         parent.columns.put(handle, this);
     }
@@ -63,6 +65,13 @@ public class Column {
     /**
      * @return length of current column
     **/
+    public long getWidth() {
+        return width;
+    }
+
+    /**
+     * @return length of current column
+    **/
     public native long getLength();
 
     /**
@@ -88,7 +97,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(boolean [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -111,7 +120,7 @@ public class Column {
     **/
     public boolean [] read(long offset, int num, boolean [] data) {
         if (data == null) {
-            data = new boolean [num];
+            data = new boolean [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -145,7 +154,7 @@ public class Column {
     **/
     public boolean [] read(int [] indexes, boolean [] data) {
         if (data == null) {
-            data = new boolean [indexes.length];
+            data = new boolean [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -160,7 +169,7 @@ public class Column {
     **/
     public boolean [] read(long [] indexes, boolean [] data) {
         if (data == null) {
-            data = new boolean [indexes.length];
+            data = new boolean [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -174,7 +183,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(byte [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -197,7 +206,7 @@ public class Column {
     **/
     public byte [] read(long offset, int num, byte [] data) {
         if (data == null) {
-            data = new byte [num];
+            data = new byte [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -231,7 +240,7 @@ public class Column {
     **/
     public byte [] read(int [] indexes, byte [] data) {
         if (data == null) {
-            data = new byte [indexes.length];
+            data = new byte [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -246,7 +255,7 @@ public class Column {
     **/
     public byte [] read(long [] indexes, byte [] data) {
         if (data == null) {
-            data = new byte [indexes.length];
+            data = new byte [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -260,7 +269,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(short [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -283,7 +292,7 @@ public class Column {
     **/
     public short [] read(long offset, int num, short [] data) {
         if (data == null) {
-            data = new short [num];
+            data = new short [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -317,7 +326,7 @@ public class Column {
     **/
     public short [] read(int [] indexes, short [] data) {
         if (data == null) {
-            data = new short [indexes.length];
+            data = new short [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -332,7 +341,7 @@ public class Column {
     **/
     public short [] read(long [] indexes, short [] data) {
         if (data == null) {
-            data = new short [indexes.length];
+            data = new short [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -346,7 +355,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(int [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -369,7 +378,7 @@ public class Column {
     **/
     public int [] read(long offset, int num, int [] data) {
         if (data == null) {
-            data = new int [num];
+            data = new int [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -403,7 +412,7 @@ public class Column {
     **/
     public int [] read(int [] indexes, int [] data) {
         if (data == null) {
-            data = new int [indexes.length];
+            data = new int [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -418,7 +427,7 @@ public class Column {
     **/
     public int [] read(long [] indexes, int [] data) {
         if (data == null) {
-            data = new int [indexes.length];
+            data = new int [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -432,7 +441,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(long [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -455,7 +464,7 @@ public class Column {
     **/
     public long [] read(long offset, int num, long [] data) {
         if (data == null) {
-            data = new long [num];
+            data = new long [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -489,7 +498,7 @@ public class Column {
     **/
     public long [] read(int [] indexes, long [] data) {
         if (data == null) {
-            data = new long [indexes.length];
+            data = new long [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -504,7 +513,7 @@ public class Column {
     **/
     public long [] read(long [] indexes, long [] data) {
         if (data == null) {
-            data = new long [indexes.length];
+            data = new long [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -518,7 +527,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(float [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -541,7 +550,7 @@ public class Column {
     **/
     public float [] read(long offset, int num, float [] data) {
         if (data == null) {
-            data = new float [num];
+            data = new float [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -575,7 +584,7 @@ public class Column {
     **/
     public float [] read(int [] indexes, float [] data) {
         if (data == null) {
-            data = new float [indexes.length];
+            data = new float [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -590,7 +599,7 @@ public class Column {
     **/
     public float [] read(long [] indexes, float [] data) {
         if (data == null) {
-            data = new float [indexes.length];
+            data = new float [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -604,7 +613,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(double [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -627,7 +636,7 @@ public class Column {
     **/
     public double [] read(long offset, int num, double [] data) {
         if (data == null) {
-            data = new double [num];
+            data = new double [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -661,7 +670,7 @@ public class Column {
     **/
     public double [] read(int [] indexes, double [] data) {
         if (data == null) {
-            data = new double [indexes.length];
+            data = new double [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -676,7 +685,7 @@ public class Column {
     **/
     public double [] read(long [] indexes, double [] data) {
         if (data == null) {
-            data = new double [indexes.length];
+            data = new double [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 
@@ -690,7 +699,7 @@ public class Column {
      * @return this column 
     **/
     public Column append(String [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -713,7 +722,7 @@ public class Column {
     **/
     public String [] read(long offset, int num, String [] data) {
         if (data == null) {
-            data = new String [num];
+            data = new String [num * width];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -747,7 +756,7 @@ public class Column {
     **/
     public String [] read(int [] indexes, String [] data) {
         if (data == null) {
-            data = new String [indexes.length];
+            data = new String [indexes.length * width];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -762,7 +771,7 @@ public class Column {
     **/
     public String [] read(long [] indexes, String [] data) {
         if (data == null) {
-            data = new String [indexes.length];
+            data = new String [indexes.length * width];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 

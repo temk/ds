@@ -19,23 +19,24 @@ using namespace std;
 
 
 column::column(storage &s, string name) 
-	: error_handler(s), dirty_(false), name_(name), length_(0), endian_(DS_E_INVALID),  
+    : error_handler(s), dirty_(false), name_(name), width_(1), length_(0), endian_(DS_E_INVALID),
 	int_type_(DS_T_INVALID), ext_type_(DS_T_INVALID), filter_(NULL), storage_(s) {
 		
 }
 
-column::column(storage &s, type_t int_type, type_t ext_type, const string &name, endian_t endian)
-	: error_handler(s), dirty_(true), name_(name), length_(0), endian_(endian),  
+column::column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian)
+    : error_handler(s), dirty_(true), name_(name), width_(width), length_(0), endian_(endian),
 	int_type_(int_type), ext_type_(ext_type), filter_(NULL), storage_(s) {
 
 	init_filters();
 }
 
 void 
-column::init(type_t int_type, type_t ext_type, size_t length, endian_t endian) {
+column::init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian) {
 	int_type_ = int_type;
 	ext_type_ = ext_type;
 	endian_   = endian;
+    width_    = width;
 	length_   = length; 
 	
 	init_filters();
@@ -74,14 +75,16 @@ column::truncate(size_t len) {
 	}
 	
 	dirty_ = true;
-	storage_.driver_ ->truncate(name_, len);
+    storage_.driver_ ->truncate(name_, len * width_);
+    length_ = len;
+    storage_.driver_ ->write_index(*this);
 	return *this;
 }
 
 column &
 column::append(const void *data, size_t num) {	
 	dirty_ = true;
-	filter_ ->put(data, num);
+    filter_ ->put(data, num);
 	length_ += num;
 	return *this;
 }
@@ -89,15 +92,14 @@ column::append(const void *data, size_t num) {
 int 
 column::read(size_t offset, size_t num, void *data) {	
 	size_t rd = min(length_ - offset, num);
-	filter_ ->get(offset, num, data);
+    filter_ ->get(offset, rd, data);
 	return rd;
 }
 
 int 
 column::read(const void *indexes, int idx_siz, size_t num, void *data) {
 	size_t rd = min(length_ , num);
-	filter_ ->get(indexes, idx_siz, num, data);
-	return rd;
+    filter_ ->get(indexes, idx_siz, num, data);
 }
 
 void
@@ -110,18 +112,18 @@ void
 column::init_filters() {
 	size_t buff_siz = storage_.buff_siz_ > 0  ? storage_.buff_siz_ : DS_BUFF_SIZ;
 	
-	push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), name_, storage_.driver_));
+    push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
 	
 	if (storage_.buff_siz_ > 0) {
-		push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), storage_.buff_siz_));
+        push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
 	}
 	
 	if (endian_ != DS_E_HOST && size_of(ext_type_) > 1) {
-		push_filter(new filter_endian(*this, ext_type_, size_of(ext_type_), buff_siz));
+        push_filter(new filter_endian(*this, ext_type_, size_of(ext_type_), width_, buff_siz));
 	}
 	
 	if (is_str(int_type_)) {
-		push_filter(new filter_str(*this, int_type_, ext_type_, buff_siz, name_, storage_.driver_, length_ > 0));
+        push_filter(new filter_str(*this, int_type_, ext_type_, width_, buff_siz, name_, storage_.driver_, length_ > 0));
 	}
 	
 	flush();

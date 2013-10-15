@@ -4,8 +4,8 @@
 
 using namespace ds;
 
-filter::filter(const error_handler &ref, type_t t_in, size_t s_in, type_t t_out, size_t s_out) 
-	: error_handler(ref), s_in_(s_in), s_out_(s_out), t_in_(t_in), t_out_(t_out), next_(0L) {
+filter::filter(const error_handler &ref, type_t t_in, size_t s_in, type_t t_out, size_t s_out, size_t width)
+    : error_handler(ref), s_in_(s_in), s_out_(s_out), t_in_(t_in), t_out_(t_out), width_(width), next_(0L) {
 }
 
 filter::~filter() {	
@@ -31,7 +31,7 @@ filter::get(size_t offs, size_t num, void *data) {
 
 void 
 filter::get(const void *indexes, int idx_siz, size_t num, void *data) {
-	next_ -> get(indexes, idx_siz, num, data);
+    next_ -> get(indexes, idx_siz, num, data);
 }
 
 void 

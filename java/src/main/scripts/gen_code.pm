@@ -42,7 +42,7 @@ print $fd <<__END_OF_MARK__;
      * \@return this column 
     **/
     public Column append($type [] data) {
-        write(data, data.length);
+        write(data, data.length / width);
         return this;
     }
 
@@ -65,7 +65,7 @@ print $fd <<__END_OF_MARK__;
     **/
     public $type [] read(long offset, int num, $type [] data) {
         if (data == null) {
-            data = new $type \[num\];
+            data = new $type \[num * width\];
         }
         read(data, null, 0, offset, num);
         return data;
@@ -99,7 +99,7 @@ print $fd <<__END_OF_MARK__;
     **/
     public $type [] read(int [] indexes, $type [] data) {
         if (data == null) {
-            data = new $type \[indexes.length\];
+            data = new $type \[indexes.length * width\];
         }
         read(data, indexes, Integer.SIZE/Byte.SIZE, 0, 0);
 
@@ -114,7 +114,7 @@ print $fd <<__END_OF_MARK__;
     **/
     public $type [] read(long [] indexes, $type [] data) {
         if (data == null) {
-            data = new $type \[indexes.length\];
+            data = new $type \[indexes.length * width\];
         }
         read(data, indexes, Long.SIZE/Byte.SIZE, 0, 0);
 

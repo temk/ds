@@ -339,7 +339,8 @@ driver_dir::write_index(const column &col) {
 	}
 		
 	out << "endian: " << col.endian()  << endl
-        << "length: " << col.length()  << endl;
+        << "length: " << col.length()  << endl
+        << "width:  " << col.width()   << endl;
 
     vector<string> keys;
     col.tags().keys(keys);
@@ -453,6 +454,8 @@ driver_dir::read_index(column &col) {
 	read_field(in, "endian:", &endian);
 	read_field(in, "length:", &length);
 
+    size_t col_width = 1;
+
     string word;
     while((in >> word) && (word != "__END__")) {
       if (word == "meta:") {
@@ -460,6 +463,8 @@ driver_dir::read_index(column &col) {
         getline(in, line);
         parse_meta(line, key, val);
         col.tags().set(key, val);
+      } else if (word == "width:") {
+        in >> col_width;
       } else {
         warn << "driver_dir::read_index: column '" << col.name() << "' unknown tag '" << word << "'" << endl;
       }
@@ -469,5 +474,5 @@ driver_dir::read_index(column &col) {
 		warn << "driver_dir::read_index: column '" << col.name() << "' had different name '" << name << "'" << endl;
 	}
 	
-	col.init( int_type, ext_type, length, endian);
+    col.init( int_type, ext_type, col_width, length, endian);
 }

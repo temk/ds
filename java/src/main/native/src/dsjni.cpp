@@ -192,7 +192,7 @@ Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstr
 		set_handle(env, self, stor);
 		
 		jclass clazz = env->FindClass( "org/temk/ds/Column" );
-		jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JLorg/temk/ds/DataStorage;)V");
+        jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JILorg/temk/ds/DataStorage;)V");
 		for (size_t k = 0; k < stor ->cols(); ++ k) {
 			column *col = &stor ->column_at(k);
 			if (is_str(col ->type())) {
@@ -273,8 +273,8 @@ JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, 
 }
 
 JNIEXPORT jobject JNICALL 
-Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring jname, jobject jendian, jlong index) {
-	type_t type = jni_to_type(env, jtype);
+Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring jname, jint width, jobject jendian, jlong index) {
+    type_t type = jni_to_type(env, jtype);
 	type_t ext_type = jni_to_type(env, jext_type);
 	endian_t endian = jni_to_endian(env, jendian);
 	
@@ -288,15 +288,15 @@ Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype,
 		get_handle(env, self, stor);
 		
 		if (is_str(type)) {
-			col = &stor ->add(type, ext_type, name, endian, index);
+            col = &stor ->add(type, ext_type, name, width, endian, index);
 			col ->set_string_accessor(get_string_accessor(env, type));
 		} else {
-			col = &stor ->add(type, name, endian, index);			
+            col = &stor ->add(type, name, width, endian, index);
 		}
 		
 		jclass clazz = env->FindClass( "org/temk/ds/Column" );
-		jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JLorg/temk/ds/DataStorage;)V");
-		result = env->NewObject(clazz, meth, jname, jlong(col), self);
+        jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JILorg/temk/ds/DataStorage;)V");
+        result = env->NewObject(clazz, meth, jname, jlong(col), width, self);
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
 	}
@@ -364,21 +364,36 @@ Java_org_temk_ds_Column_getIndex(JNIEnv *env, jobject self) {
 	return result;
 }
 
-JNIEXPORT jlong 
+JNIEXPORT jlong
 JNICALL Java_org_temk_ds_Column_getLength(JNIEnv *env, jobject self) {
-	column *col = NULL;
-	jlong result = -1;
-	try {		
-		get_handle(env, self, col);
-		result = col ->length();
-	} catch(const exception &ex) {
-		jni_throw(env, ex.what());
-	}	
-	
-	return result;
-}
+    column *col = NULL;
+    jlong result = -1;
+    try {
+        get_handle(env, self, col);
+        result = col ->length();
+    } catch(const exception &ex) {
+        jni_throw(env, ex.what());
+    }
 
-JNIEXPORT jobject JNICALL 
+    return result;
+}
+/*
+JNIEXPORT jlong
+JNICALL Java_org_temk_ds_Column_getWidth(JNIEnv *env, jobject self) {
+    column *col = NULL;
+    jlong result = -1;
+    try {
+        get_handle(env, self, col);
+        result = col ->width();
+    } catch(const exception &ex) {
+        jni_throw(env, ex.what());
+    }
+
+    return result;
+}
+*/
+
+JNIEXPORT jobject JNICALL
 Java_org_temk_ds_Column_getExtType(JNIEnv *env, jobject self) {
 	column *col = NULL;
 	jobject result = NULL;
@@ -432,7 +447,7 @@ jni_read(column *col, JNIEnv *env, jarray data, jlong offset, jlong num) {
 
 static void 
 jni_read(column *col, JNIEnv *env, jarray data, jarray indexes, int idx_siz) {
-	size_t num = env ->GetArrayLength(data);
+    size_t num = env ->GetArrayLength(indexes);
 	void *idx = env ->GetPrimitiveArrayCritical(indexes, 0);
 
 	if (is_str(col->type())) {

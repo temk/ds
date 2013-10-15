@@ -119,7 +119,20 @@ public class DataStorage {
      * @param extType - integral type to store strings via dictionary. use Type.INVALID when it not relevant
      * @return new column
     **/
-    public native Column addColumn(Type type, Type extType, String name, ByteOrder endian, long index);
+    public native Column addColumn(Type type, Type extType, String name, int width, ByteOrder endian, long index);
+
+    /**
+     * Create new column. 
+     * @param type - type to store underlying data
+     * @param name - column name
+     * @param endian - byte order  
+     * @param index - column index
+     * @param extType - integral type to store strings via dictionary. use Type.INVALID when it not relevant
+     * @return new column
+    **/
+    public Column addColumn(Type type, Type extType, String name, ByteOrder endian, long index) {
+        return addColumn(type, extType, name, 1, endian, index);
+    }
     
     /**
      * Create new column with default values. (endian = host)
@@ -130,6 +143,17 @@ public class DataStorage {
     public Column addColumn(Type type, String name) {
         Type extType = type.isString() ? Type.UINT32 :  Type.INVALID;
         return addColumn(type, extType, name, ByteOrder.nativeOrder(), -1);
+    }
+    
+    /**
+     * Create new column with default values. (endian = host)
+     * @param type - type to store underlying data
+     * @param name - column name
+     * @return new column
+     */
+    public Column addColumn(Type type, String name, int width) {
+        Type extType = type.isString() ? Type.UINT32 :  Type.INVALID;
+        return addColumn(type, extType, name, width, ByteOrder.nativeOrder(), -1);
     }
     
     /**

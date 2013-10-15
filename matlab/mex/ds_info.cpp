@@ -11,7 +11,7 @@
 using namespace ds;
 using namespace std;
 
-static const char * FIELDS[] = {"name", "length", "type", "size", "endian" };
+static const char * FIELDS[] = {"name", "length", "type", "size", "endian", "width" };
 
 /**
  * info = ds_info(handle);
@@ -44,6 +44,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			 mxSetField(plhs[0], k, FIELDS[2], mxCreateString(type_to_str(c.type())));
 			 mxSetField(plhs[0], k, FIELDS[3], mxCreateDoubleScalar(size_of(c.ext_type())));
 			 mxSetField(plhs[0], k, FIELDS[4], mxCreateString(endian_to_str(c.endian())));
+			 mxSetField(plhs[0], k, FIELDS[5], mxCreateDoubleScalar(c.width()));
 		}
 
 			

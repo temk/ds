@@ -31,10 +31,15 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		for (size_t k = 0; k < col_num; ++ k) {
 			column &c = stor.s ->column_at(cols[k]);
 			
-			
 			mxArray *data = mxGetCell(prhs[2], k);
-			size_t len = mxGetNumberOfElements(data);
-
+			size_t width = mxGetM(data);
+			size_t len = mxGetN(data);
+            
+            if ( width != c.width()) {
+        		mexErrMsgIdAndTxt("ds:dim", "matrix dimession (%d x %d) must agree with column width (%d)", width, len, c.width());
+            }
+            
+            
 			if (is_str(c.type())) {
 				c.append(data, len);
 			} else {

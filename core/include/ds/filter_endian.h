@@ -13,12 +13,12 @@ namespace ds {
 		converter conv_;
 		
 	public:
-		filter_endian(const error_handler &ref, type_t type, size_t siz, size_t cap);
+        filter_endian(const error_handler &ref, type_t type, size_t siz, size_t width, size_t cap);
 		~filter_endian();		
 		
 		void put(const void *data, size_t num);
 		void get(size_t offs, size_t num, void *data);
-		void get(const void *indexes, int idx_siz, size_t num, void *data);
+        void get(const void *indexes, int idx_siz, size_t num, void *data);
 	};		
 	
 }

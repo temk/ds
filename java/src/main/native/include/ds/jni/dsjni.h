@@ -11,7 +11,7 @@ extern "C" {
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnNumber(JNIEnv *env, jobject self);
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnByIndex(JNIEnv *env, jobject self, jlong index);
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, jstring name);
-	JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring name, jobject jendian, jlong index);
+    JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring name, jint width, jobject jendian, jlong index);
 	JNIEXPORT void JNICALL Java_org_temk_ds_DataStorage_flush(JNIEnv *env, jobject self);
 	
     JNIEXPORT void JNICALL Java_org_temk_ds_Column_remove(JNIEnv *env, jobject self); 
@@ -25,6 +25,7 @@ extern "C" {
 
     JNIEXPORT jlong JNICALL Java_org_temk_ds_Column_getIndex(JNIEnv *env, jobject self);
     JNIEXPORT jlong JNICALL Java_org_temk_ds_Column_getLength(JNIEnv *env, jobject self);
+//    JNIEXPORT jlong JNICALL Java_org_temk_ds_Column_getWidth(JNIEnv *env, jobject self);
 
     JNIEXPORT jobject JNICALL Java_org_temk_ds_Column_getExtType(JNIEnv *env, jobject self);
     JNIEXPORT jobject JNICALL Java_org_temk_ds_Column_getByteOrder(JNIEnv *env, jobject self);    

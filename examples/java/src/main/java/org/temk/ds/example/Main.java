@@ -13,12 +13,12 @@ public class Main {
         
         try {
             ds.open("/tmp/storage", "rwct", 1024 * 1024);
-            ds.addColumn(Type.STRING16, "s");
+            ds.addColumn(Type.STRING16, "s", 2);
             ds.addColumn(Type.INT32,    "i");
             ds.addColumn(Type.FLOAT64,  "d");
             
             long t1 = System.currentTimeMillis();
-            for (int k = 0; k < 10000000; ++ k) {
+            for (int k = 0; k < 1; ++ k) {
                ds.getColumn("s").append(sc);
                ds.getColumn("i").append(ic );
                ds.getColumn("d").append(dc );
@@ -26,7 +26,7 @@ public class Main {
 
             ds.flush();
             long t2 = System.currentTimeMillis();
-            System.out.println("tme write: " + (t2 - t1)/1000.0);
+            System.out.println("time write: " + (t2 - t1)/1000.0);
 
             long t3 = System.currentTimeMillis();
             String [] s0 = ds.getColumn("s").read(sc); 
@@ -34,11 +34,11 @@ public class Main {
             double [] d0 = ds.getColumn("d").read(dc);
             
             long t4 = System.currentTimeMillis();
-            System.out.println("tme read: " + (t4 - t3)/1000.0);
+            System.out.println("time read: " + (t4 - t3)/1000.0);
             
-            int [] indexes = new int[] { 1, 3, 5, 7, 9 };
+            int [] indexes = new int[] { 0, 2, 4};
             
-            String [] s1 = ds.getColumn("s").read(2, 4, (String [])null);
+            String [] s1 = ds.getColumn("s").read(2, 2, (String [])null);
             String [] s2 = ds.getColumn("s").read(indexes, (String [])null);
             
             int [] i1 = ds.getColumn("i").read(2, 4, (int [])null);

@@ -23,7 +23,8 @@ namespace ds {
 	private:
 		bool dirty_;
 		string name_;
-		size_t length_;
+        size_t width_;
+        size_t length_;
 		endian_t endian_;
 
 		type_t int_type_;
@@ -38,10 +39,10 @@ namespace ds {
 		virtual void init_filters();
 		
 	public:		
-		column(storage &s, string name);
-		column(storage &s, type_t int_type, type_t ext_type, const string &name, endian_t endian);
+        column(storage &s, string name);
+        column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian);
 		
-		void init(type_t int_type, type_t ext_type, size_t length, endian_t endian);
+        void init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian);
 		
 		virtual ~column();
 		
@@ -63,11 +64,13 @@ namespace ds {
 		
 		inline const string & name() const;
 		
-		inline size_t length() const;
+        inline size_t width() const;
+        inline size_t length() const;
 
 		inline endian_t endian() const;
 		inline type_t type() const;
 		inline type_t ext_type() const;
+
 
         inline const meta &tags() const;
         inline meta &tags();
@@ -92,9 +95,13 @@ namespace ds {
 		return name_;
 	}
 	
-	inline size_t column::length() const {
-		return length_;
-	}
+    inline size_t column::width() const {
+        return width_;
+    }
+
+    inline size_t column::length() const {
+        return length_;
+    }
 
     inline const meta &column::tags() const {
         return meta_;

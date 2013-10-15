@@ -130,7 +130,7 @@ void read_stor()
 
 
 int
-main(int argc, char **argv)
+main1(int argc, char **argv)
 {
 	try {
 		create_stor();
@@ -139,4 +139,41 @@ main(int argc, char **argv)
 		cerr << "Exception: " << ex.what() << endl;
 	}
 	return 0;
+}
+
+int
+main(int argc, char **argv)
+{
+  storage stor;
+  stor.warn.set(&warning);
+  stor.info.set(&info);
+
+  stor.open(DS_NAME, DS_O_DEFAULT | DS_O_TRUNC);
+  column & c = stor.add(DS_T_STRING8, DS_T_UINT32, "x", 3);
+  const char * data[] = {"1","2","3","4","5","6","7","8","9","10","11","12"};
+  c.append(data, 4);
+  stor.flush();
+
+  const char * d1[6];
+  const char * d2[6];
+  int idx[] = {1,3};
+  c.read(1, 2, d1);
+  c.read(idx, sizeof(int), 2, d2);
+  cout << "=== d1 === " << endl;
+  for (int k = 0; k < 2; ++ k) {
+    for (int s = 0; s < 3; ++ s) {
+      cout << d1[k * 3 + s] << " ";
+    }
+    cout << endl;
+  }
+
+  cout << "=== d2 === " << endl;
+  for (int k = 0; k < 2; ++ k) {
+    for (int s = 0; s < 3; ++ s) {
+      cout << d2[k * 3 + s] << " ";
+    }
+    cout << endl;
+  }
+
+  stor.close();
 }

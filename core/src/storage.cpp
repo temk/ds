@@ -129,25 +129,25 @@ storage::column_at(const string &name) {
 }
 
 column &
-storage::add(type_t type, const string &name, endian_t endian, ssize_t index) {	
+storage::add(type_t type, const string &name,  size_t width, endian_t endian, ssize_t index) {
 	string var = find_free_name(name, col_by_name_);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
 	
-	column *col = new column(*this, type, type, var, endian);
+    column *col = new column(*this, type, type, var, width, endian);
 	push(col, index);
 	return *col;
 }
 
 column &
-storage::add(type_t type, type_t dict, const string &name, endian_t endian, ssize_t index) {	
+storage::add(type_t type, type_t dict, const string &name,  size_t width, endian_t endian, ssize_t index) {
 	string var = find_free_name(name, col_by_name_);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
 	
-	column *col = new column(*this, type, dict, var, endian);
+    column *col = new column(*this, type, dict, var, width, endian);
 	push(col, index);
 	return *col;
 }
@@ -187,7 +187,7 @@ void *ds_open(const char *path, int mode, int buff_siz) {
   return new ds::storage(path, mode, buff_siz);
 }
 
-void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, int c_endian, int index ) {
+void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, int width, int c_endian, int index ) {
   ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
 
   string name = "";
@@ -207,8 +207,8 @@ void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, 
   }
 
   ds::column & col = (dict_type == DS_T_INVALID)  ?
-                       stor ->add(type, name, endian, index) :
-                       stor ->add(type, dict_type, name, endian, index);
+                       stor ->add(type, name, width, endian, index) :
+                       stor ->add(type, dict_type, name, width, endian, index);
   return &col;
 }
 

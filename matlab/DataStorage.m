@@ -94,17 +94,17 @@ classdef DataStorage < handle
         %       Endian - endianness of column. possible values are 'host', 'big' and 'little'. default: 'host'
         %       Index  - adds column to specific index.
         %       EncSize - encoding size. valid only for strings. 
-        %
+        %       Width   - the table width
         %Example:
         %   ds.add('uint8', 'Name', 'A'); % create uint8 column named 'A'
         %
         %   b = random(25, 'single');
         %   ds.add( class(b), 'Name', 'b', 'Endian', 'little'); % create float32 column named 'b', little endian
         %    
-            [name, endian, index, enc_type] = get_parameters(self, ...
-                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncType', 'uint32'}, ...
+            [name, endian, index, enc_type, width] = get_parameters(self, ...
+                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncType', 'uint32', 'Width', 1}, ...
                                                            varargin);
-            ds_add(self.handle, type, name, endian, int64(index - 1), enc_type);
+            ds_add(self.handle, type, name, endian, int64(index - 1), enc_type, uint64(width));
             self.column = ds_info(self.handle);
         end
         
@@ -134,6 +134,7 @@ classdef DataStorage < handle
                 if (~strncmp(type, 'char', 4)) 
                     data{k} = cast(data{k}, type);
                 end
+                data{k} = data{k}';                
             end
             ds_write(self.handle, uint64(col_idx - 1), data);
         end
@@ -192,6 +193,8 @@ classdef DataStorage < handle
             else
                 data = ds_read(self.handle, uint64(col_idx - 1), uint64(row_offs - 1), uint64(count));
             end
+            
+            data = cellfun(@(c) c', data, 'UniformOutput', false); 
             
             if nargout == 1 && numel(col_idx) > 1
                 varargout{1} = data;

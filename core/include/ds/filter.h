@@ -13,17 +13,19 @@ namespace ds {
 		type_t t_in_;
 		type_t t_out_;
 		
+        size_t width_;
+
 		filter *next_;
-		
+
 	public:
-		filter(const error_handler &ref, type_t t_in, size_t s_in, type_t t_out, size_t s_out);
+        filter(const error_handler &ref, type_t t_in, size_t s_in, type_t t_out, size_t s_out, size_t width);
 		virtual ~filter();		
 		
 		virtual void flush();
 		
 		virtual void put(const void *data, size_t num);
 		virtual void get(size_t offs, size_t num, void *data);
-		virtual void get(const void *indexes, int idx_siz, size_t num, void *data);
+        virtual void get(const void *indexes, int idx_siz, size_t num, void *data);
 
 		inline type_t type_in()  const;
 		inline type_t type_out() const;
@@ -31,17 +33,22 @@ namespace ds {
 		inline size_t size_in()  const;
 		inline size_t size_out() const;
 				
+        inline size_t width() const;
 		inline const filter *next() const;		
 		inline filter *next();
 		void next(filter *);
 	};
 	
 	// ===============================================================
-	inline const filter *filter::next() const {
-		return next_;
-	}
-	
-	inline filter *filter::next() {
+    inline size_t filter::width() const {
+        return width_;
+    }
+
+    inline const filter *filter::next() const {
+        return next_;
+    }
+
+    inline filter *filter::next() {
 		return next_;
 	}
 	

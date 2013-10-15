@@ -52,8 +52,8 @@ static void convert16(const void *src, void *dst, size_t num);
 static void convert32(const void *src, void *dst, size_t num);
 static void convert64(const void *src, void *dst, size_t num);
 
-filter_endian::filter_endian(const error_handler &ref, type_t type, size_t siz, size_t cap) 
- : filter(ref, type, siz, type, siz), cap_(cap) {
+filter_endian::filter_endian(const error_handler &ref, type_t type, size_t siz, size_t width, size_t cap)
+ : filter(ref, type, siz, type, siz, width), cap_(cap) {
 	 
 	buff_ = new char[siz * cap_];
 	
@@ -85,10 +85,10 @@ filter_endian::put(const void *data, size_t num) {
 	
 	while(num > 0) {
 		size_t chunk = min(num, cap_);
-		conv_(src, buff_, chunk);
+        conv_(src, buff_, chunk * width());
 		next() ->put(buff_, chunk);
-		src += chunk;
-		num -= chunk;
+        src += chunk * size_in() * width();
+        num -= chunk;
 	}
 }
 
@@ -98,11 +98,11 @@ filter_endian::get(size_t offs, size_t num, void *data) {
 	
 	while(num > 0) {
 		size_t chunk = min(num, cap_);
-		next() ->get(offs, chunk, buff_);
-		conv_(buff_, dst, chunk);
-		dst += chunk;
-		num -= chunk;
-		offs += chunk * size_in();
+        next() ->get(offs, chunk, buff_);
+        conv_(buff_, dst, chunk * width());
+        dst += chunk * size_in() * width();
+        num -= chunk;
+        offs += chunk;
 	}	
 }
 
@@ -113,11 +113,11 @@ filter_endian::get(const void *indexes, int idx_siz, size_t num, void *data) {
 	
 	while(num > 0) {
 		size_t chunk = min(num, cap_);
-		next() ->get(idx, idx_siz, chunk, buff_);
-		conv_(buff_, dst, chunk);
-		dst += chunk;
+        next() ->get(idx, idx_siz, chunk, buff_);
+        conv_(buff_, dst, chunk * width());
 		num -= chunk;
-		idx += chunk * idx_siz;
+        dst += chunk * size_in() * width();
+        idx += chunk * idx_siz;
 	}	
 }
 

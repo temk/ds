@@ -40,15 +40,16 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
 		for (size_t k = 0; k < col_num; ++ k) {
 			column & c = stor.s ->column_at(cols[k]);
-			
+			uint64_t width = c.width();
+            
 			//cout << "Read col " << cols[k] << ":" << c.name() << endl;
 			
 			mxArray *data = NULL;
 			if (is_str(c.type())) {
-				data = mxCreateCellMatrix(row_num, 1);
+				data = mxCreateCellMatrix(width, row_num);
 				c.read(rows, row_num, data);
 			} else {
-				data = mxCreateNumericMatrix(row_num, 1, type_to_class(c.type()), mxREAL);
+				data = mxCreateNumericMatrix(width, row_num, type_to_class(c.type()), mxREAL);
 				c.read(rows, row_num, mxGetData(data));
 			}
 			
