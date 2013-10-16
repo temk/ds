@@ -169,4 +169,8 @@ public class DataStorage {
      * flush all data to disk
     **/
     public native void flush();
+    
+    
+    public native void addMeta(String key, String value);
+    public native Map<String, String> getMeta();
 }

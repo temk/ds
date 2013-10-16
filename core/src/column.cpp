@@ -61,11 +61,11 @@ column::remove() {
 
 column &
 column::flush() {	
-	if (dirty_) {
-		filter_ ->flush();
-		storage_.driver_ ->write_index(*this);
-	}
-	return *this;
+    if (dirty_) {
+        filter_ ->flush();
+    }
+    storage_.driver_ ->write_index(*this);
+    return *this;
 }
 
 column &

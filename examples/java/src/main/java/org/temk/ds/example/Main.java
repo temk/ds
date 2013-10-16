@@ -1,10 +1,24 @@
 package org.temk.ds.example;
 
+import java.util.Map;
 import org.temk.ds.DataStorage;
 import org.temk.ds.Type;
 
 public class Main {
     public static void main(String [] args) {
+        try {
+        DataStorage ds = new DataStorage("/tmp/ds");
+        Map<String, String> m1 = ds.getMeta();
+        Map<String, String> m2 = ds.getColumn("A").getMeta();
+        
+        ds.addMeta("xaxa1", "xoxo1");
+        ds.getColumn("A").addMeta("xaxa2", "xoxo2");
+        ds.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    public static void main1(String [] args) {
         
         DataStorage ds = new DataStorage();
         double [] dc = new double [] {1,2,3,4,5,6,7,8,9,0};

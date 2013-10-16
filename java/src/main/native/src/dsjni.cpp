@@ -180,6 +180,39 @@ static void get_handle(JNIEnv *env, jobject self, T *&handle) {
 }
 
 // ========================================================================================================
+jobject
+jni_get_meta(JNIEnv *env, const meta &m) {
+  vector<string> keys;
+  m.keys(keys);
+
+  jclass clazz = env->FindClass("java/util/HashMap");
+  if(clazz == NULL)  {
+      return NULL;
+  }
+
+
+  jmethodID init = env->GetMethodID(clazz, "<init>", "(I)V");
+  jobject hash = env->NewObject(clazz, init, keys.size());
+
+  jmethodID put = env->GetMethodID(clazz, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+  for (int k = 0; k < keys.size(); ++ k)
+  {
+    jstring jkey = env ->NewStringUTF(keys[k].c_str());
+    jstring jval = env ->NewStringUTF(m.get(keys[k]).c_str());
+
+    env -> CallObjectMethod(hash, put, jkey, jval);
+
+    env -> DeleteLocalRef(jkey);
+    env-> DeleteLocalRef(jval);
+  }
+
+  env -> DeleteLocalRef(clazz);
+
+  return hash;
+}
+
+// ========================================================================================================
 
 JNIEXPORT void JNICALL 
 Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstring jmode, jlong buff_siz) {
@@ -188,21 +221,21 @@ Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstr
 	jni_to_string(env, jmode, mode);
 	
 	try {
-		storage *stor = new storage(path, str_to_mode(mode.c_str()), buff_siz);		
-		set_handle(env, self, stor);
-		
+        storage *stor = new storage(path, str_to_mode(mode.c_str()), buff_siz);
+        set_handle(env, self, stor);
+
 		jclass clazz = env->FindClass( "org/temk/ds/Column" );
         jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JILorg/temk/ds/DataStorage;)V");
-		for (size_t k = 0; k < stor ->cols(); ++ k) {
-			column *col = &stor ->column_at(k);
+        for (size_t k = 0; k < stor ->cols(); ++ k) {
+            column *col = &stor ->column_at(k);
 			if (is_str(col ->type())) {
 				col ->set_string_accessor(get_string_accessor(env, col ->type()));				
 			}
 			
 			jstring jname = env ->NewStringUTF(col ->name().c_str());
-			env->NewObject(clazz, meth, jname, jlong(col), self);			
-		}
-	} catch(const exception &ex) {
+            env->NewObject(clazz, meth, jname, jlong(col), col ->width(), self);
+        }
+    } catch(const exception &ex) {
 		jni_throw(env, ex.what());
 	}
 }
@@ -315,6 +348,33 @@ Java_org_temk_ds_DataStorage_flush(JNIEnv *env, jobject self) {
 	}
 }
 
+JNIEXPORT void JNICALL
+Java_org_temk_ds_DataStorage_addMeta(JNIEnv *env, jobject self, jstring jkey, jstring jvalue) {
+  storage *stor;
+  string key, value;
+  try {
+      get_handle(env, self, stor);
+      jni_to_string(env, jkey, key);
+      jni_to_string(env, jvalue, value);
+      stor ->tags().set(key, value);
+  } catch(const exception &ex) {
+      jni_throw(env, ex.what());
+  }
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_temk_ds_DataStorage_getMeta(JNIEnv *env, jobject self) {
+  storage *stor;
+  jobject result;
+  try {
+      get_handle(env, self, stor);
+      result = jni_get_meta(env, stor ->tags());
+  } catch(const exception &ex) {
+      jni_throw(env, ex.what());
+  }
+  return result;
+}
+
 
 // ========================================================================================================
 JNIEXPORT void 
@@ -338,6 +398,35 @@ Java_org_temk_ds_Column_flush(JNIEnv *env, jobject self) {
 		jni_throw(env, ex.what());
 	}
 }
+
+JNIEXPORT void JNICALL
+Java_org_temk_ds_Column_addMeta(JNIEnv *env, jobject self, jstring jkey, jstring jvalue) {
+  column *col = NULL;
+  string key, value;
+  try {
+      get_handle(env, self, col);
+      jni_to_string(env, jkey, key);
+      jni_to_string(env, jvalue, value);
+      col ->tags().set(key, value);
+  } catch(const exception &ex) {
+      jni_throw(env, ex.what());
+  }
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_temk_ds_Column_getMeta(JNIEnv *env, jobject self) {
+  column *col = NULL;
+  jobject result;
+  try {
+      get_handle(env, self, col);
+      result = jni_get_meta(env, col ->tags());
+  } catch(const exception &ex) {
+      jni_throw(env, ex.what());
+  }
+
+  return result;
+}
+
 
 JNIEXPORT void
 JNICALL Java_org_temk_ds_Column_truncate(JNIEnv *env, jobject self, jlong new_length) {

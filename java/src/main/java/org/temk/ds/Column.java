@@ -1,6 +1,7 @@
 package org.temk.ds;
 
 import java.nio.ByteOrder;
+import java.util.Map;
 
 public class Column {
     private long handle;
@@ -48,6 +49,9 @@ public class Column {
      * flush data belongs to current column to disk and rewrite index.
     **/
     public native void flush();    
+    
+    public native void addMeta(String key, String value);
+    public native Map<String, String> getMeta();
     
     /**
      * @return index of current column

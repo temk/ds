@@ -36,7 +36,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (nrhs == 3) {
           stor.s ->tags().set(key, val);
         } else {
-          size_t col = *(uint64_t *)mxGetData(prhs[0]);
+          size_t col = *(uint64_t *)mxGetData(prhs[3]);
           stor.s ->column_at(col).tags().set(key, val);
         }
 	} catch(const runtime_error &err) {
