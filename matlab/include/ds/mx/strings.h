@@ -9,7 +9,6 @@ using namespace ds;
 using namespace std;
 
 #include <mex.h>
-#include <matrix.h>
 extern "C" mxArray* mxCreateReference(mxArray*);
 
 namespace ds {
