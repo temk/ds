@@ -19,7 +19,17 @@ B = ds.read('A', 'Rows', 1:2:5);
 ds.truncate('A', 3);
 a = ds.read('A');
 
-[k, v] = ds.get_meta('A');
-[K, V] = ds.get_meta();
+[v, k] = ds.get_meta();
+[v, k] = ds.get_meta([]);
+[v, k] = ds.get_meta(1);
+[v, k] = ds.get_meta('A');
+
+[v] = ds.get_meta([], {'foo2', 'no_key', 'foo1'});
+[v] = ds.get_meta([], 'foo2');
+[v] = ds.get_meta([], 'foo3');
+
+[v] = ds.get_meta('A', {'opsa2', 'no_key', 'opsa1'});
+[v] = ds.get_meta('A', 'opsa2');
+[v] = ds.get_meta('A', 'opsa3');
 
 ds.close();

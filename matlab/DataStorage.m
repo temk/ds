@@ -206,7 +206,15 @@ classdef DataStorage < handle
         end
         
         function add_meta(self, key, val, col)
-            if nargin < 4                
+            % add meta data to starage or to secific column
+            %
+            % examples
+            % ds.add_meta('content-type', 'data/raw');     % add to storage
+            % ds.add_meta('content-type', 'data/raw', []); % add to storage
+            % ds.add_meta('content-type', 'data/raw',  4); % add to column #4
+            % ds.add_meta('content-type', 'data/raw','A'); % add to column 'A'
+            %
+            if nargin < 4 || isempty(col)
                 ds_meta_add(self.handle, key, val);
             else
                 col = names_to_indexes(self, col);
@@ -214,13 +222,46 @@ classdef DataStorage < handle
             end
         end
         
-        function [keys, values] = get_meta(self, col)
-            if nargin < 2
-                [keys, values] = ds_meta_get(self.handle);
+        function [vals, keys] = get_meta(self, col, query)
+            % get meta data from starage or secific column level
+            %
+            % examples
+            % [vals, keys] = ds.get_meta();           % get all pairs for storage
+            % [vals, keys] = ds.get_meta(4);          % get all pairs for column #4
+            % [vals, keys] = ds.get_meta('A');        % get all pairs for column 'A'
+            % [vals, keys] = ds.get_meta('A');        % get all pairs for column 'A'
+            %
+            % [val]  = ds.get_meta([], 'key');            % get one value for storage
+            % [vals] = ds.get_meta([], {'key1', 'key2'}); % get multiple values from storage
+            % [val]  = ds.get_meta(4,  'key');            % get one value for column #4
+            % [vals] = ds.get_meta('A', {'key1', 'key2'}); % get multiple values for column 'A'
+            %
+            if nargin < 2 || isempty(col)
+                [K, V] = ds_meta_get(self.handle);
             else
                 col = names_to_indexes(self, col);
-                [keys, values] = ds_meta_get(self.handle, uint64(col - 1));
-            end             
+                [K, V] = ds_meta_get(self.handle, uint64(col - 1));
+            end
+            
+            if nargin < 3                
+                vals = V;
+                keys = K;
+                return;
+            end
+                        
+            keys = query;
+            if ~iscell(query),
+                query = {query};
+            end
+            
+            vals = cell(size(query));
+            
+            [mm, ii] = ismember(query, K);
+            vals(mm) = V(ii(mm));
+
+            if ~iscell(keys),
+                vals = vals{1};
+            end            
         end
     end
     
@@ -243,7 +284,7 @@ classdef DataStorage < handle
         
         function [indexes] = names_to_indexes(self, names)
             if ~ischar(names) && ~iscell(names)
-                indexes = arg;
+                indexes = names;
                 return;
             end
             if ischar(names)
