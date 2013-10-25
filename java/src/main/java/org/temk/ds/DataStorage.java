@@ -173,4 +173,13 @@ public class DataStorage {
     
     public native void addMeta(String key, String value);
     public native Map<String, String> getMeta();
+
+    public boolean hasColumn(String name) {
+        for (Column c: columns.values())  {
+            if (c.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
