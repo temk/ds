@@ -1,7 +1,5 @@
 package org.temk.ds.util;
 
-import org.temk.ds.util.Buffer;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import org.temk.ds.Column;
@@ -28,11 +26,13 @@ public class DataStorageWriter<T> {
         this.counter = 0;
 
 
-        for (Field field : clazz.getDeclaredFields()) {
-            field.setAccessible(true);
+        Class c = clazz;
+        while(c != null) {
+        for (Field field : c.getDeclaredFields()) {
 
             Persistent p = field.getAnnotation(Persistent.class);
             if (p != null) {
+                field.setAccessible(true);
                 String name = p.value();
                 if (name.length() == 0) {
                     name = field.getName();
@@ -42,8 +42,8 @@ public class DataStorageWriter<T> {
                 if (ds.hasColumn(name)) {
                     col = ds.getColumn(name);
                 } else {
-                    if (createIfNotExists) {
-                        col = ds.addColumn(Type.fromClass(field.getType()), name);
+                    if (createIfNotExists) {                        
+                        col = ds.addColumn(field.getType().isEnum() ? Type.STRING16 : Type.fromClass(field.getType()), name);
                     } else {
                         throw new RuntimeException("Column " + name + " not exists");
                     }
@@ -51,6 +51,9 @@ public class DataStorageWriter<T> {
 
                 list.add(new BufferedColumn(Buffer.create(bufSize, field), col));
             }
+        }
+        
+        c = c.getSuperclass();
         }
     }
 

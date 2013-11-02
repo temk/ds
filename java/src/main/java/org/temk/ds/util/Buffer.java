@@ -25,7 +25,7 @@ public abstract class Buffer<TArray> {
     public abstract void write(Object obj, int index) throws Exception;
 
     public static Buffer create(int size, Field field) {
-        Class clazz = field.getType();
+        final Class clazz = field.getType();
 
         if (clazz == Boolean.TYPE) {
             return new Buffer<boolean[]>(size, field, new boolean[size]) {
@@ -123,7 +123,19 @@ public abstract class Buffer<TArray> {
                     array[index] = (String) field.get(obj);
                 }
             };
+        } else if (clazz.isEnum()) {
+            return new Buffer<String []>(size, field, new String[size]) {
+                @Override
+                public void read(Object obj, int index) throws Exception {
+                    field.set(obj, Enum.valueOf(clazz, array[index]));
+                }
+
+                @Override
+                public void write(Object obj, int index) throws Exception {
+                    array[index] = field.get(obj).toString();
+                }
+            };
         }
-        return null;
+        throw new RuntimeException("Field of unexpected type: " + clazz);
     }
 }

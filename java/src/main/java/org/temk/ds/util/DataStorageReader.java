@@ -8,6 +8,7 @@ import org.temk.ds.Persistent;
 
 public class DataStorageReader<T> {
     private int bufSize;
+    private int bufLen;
     private int counter;
     private Class<T> clazz;
     private DataStorage ds;
@@ -21,25 +22,29 @@ public class DataStorageReader<T> {
         this.clazz = clazz;
         this.bufSize = bufSize;
         this.counter = 0;
+        this.bufLen  = 0;
         
-        
-        for (Field field: clazz.getDeclaredFields()) {
-            field.setAccessible(true);
-            
-            Persistent p = field.getAnnotation(Persistent.class);
-            if (p != null) {
-                String name = p.value();
-                if (name.length() == 0) {
-                    name = field.getName();
+        Class c = clazz;
+        while(c != null) {
+            for (Field field: c.getDeclaredFields()) {
+                Persistent p = field.getAnnotation(Persistent.class);
+                if (p != null) {
+                    field.setAccessible(true);
+
+                    String name = p.value();
+                    if (name.length() == 0) {
+                        name = field.getName();
+                    }
+
+                    Column col = ds.getColumn(name);
+
+                    available = Math.min(available, col.getLength());                        
+                    list.add(new BufferedColumn(Buffer.create(bufSize, field), col));
                 }
-                
-                Column col = ds.getColumn(name);
-                
-                available = Math.min(available, col.getLength());                        
-                list.add(new BufferedColumn(Buffer.create(bufSize, field), col));
             }
+            
+            c = c.getSuperclass();
         }
-        
         fetch();
     }
     
@@ -53,15 +58,16 @@ public class DataStorageReader<T> {
     }
 
     public T read(T obj) {
+        if (counter == bufLen) {
+            if (!fetch()) {
+                return null;
+            }
+        }
         try {
             for (BufferedColumn bc: list) {
                 bc.buffer.read(obj, counter);
             }
-            if (++ counter == bufSize) {
-                if (!fetch()) {
-                    return null;
-                }
-            }
+            ++ counter;
             return obj;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -78,6 +84,7 @@ public class DataStorageReader<T> {
         }
         totalRead += rd;
         counter = 0;
+        bufLen  = (int )rd;
         return true;
     }
     
