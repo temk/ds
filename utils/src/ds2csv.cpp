@@ -49,10 +49,11 @@ class printable_column {
 protected:
   column &col_;
   string delim_;
+  string delim_last_;
   string quote_;
 
 public:
-  printable_column (column &col, const string & delim, const string & quote);
+  printable_column (column &col, const string & delim, const string & delim_last, const string & quote);
 
   virtual ~printable_column ();
 
@@ -63,8 +64,8 @@ public:
   virtual void print(ostream &, size_t k) const = 0;
 };
 
-printable_column ::printable_column (column &col, const string & delim, const string & quote) 
-  : col_(col), delim_(delim), quote_(quote) {
+printable_column ::printable_column (column &col, const string & delim, const string & delim_last, const string & quote)
+  : col_(col), delim_(delim), delim_last_(delim_last), quote_(quote) {
 }
 
 printable_column ::~printable_column () {	
@@ -77,8 +78,8 @@ private:
   T *data_;
 
 public:
-  printable_column_ex(column &col, const string & delim, const string &quote = "") : printable_column (col, delim, quote) {
-    data_ = new T[col.length()];
+  printable_column_ex(column &col, const string & delim, const string & delim_last, const string &quote = "") : printable_column (col, delim, delim_last, quote) {
+    data_ = new T[col.length() * col.width()];
     col.read(0, col.length(), data_);
   }
 
@@ -87,60 +88,69 @@ public:
   }
 
   void print(ostream &out, size_t k) const {
-    if (k < col_.length()) {
-        out << quote_<< data_[k] << quote_;
+    for (int n = 0; n < col_.width() - 1; ++ n)  {
+      if (k < col_.length()) {
+          out << quote_<< data_[k * col_.width() + n] << quote_ << delim_;
+      } else {
+        out <<  delim_;
       }
-    out <<  delim_;
+    }
+
+    if (k < col_.length()) {
+      out << quote_<< data_[(k + 1) * col_.width() -1] << quote_ << delim_last_;
+    } else {
+      out <<  delim_last_;
+    }
   }
 };
 
 
 printable_column * 
-create(column &col, const string &delim, const string &quote) {
+create(column &col, const string &delim, const string &delim_last, const string &quote) {
   switch(col.type()) {
     case DS_T_BOOL:
-      return new printable_column_ex<bool>(col, delim);
+      return new printable_column_ex<bool>(col, delim, delim_last);
 
     case DS_T_INT8:
-      return new printable_column_ex<int8_t>(col, delim);
+      return new printable_column_ex<int8_t>(col, delim, delim_last);
 
     case DS_T_INT16:
-      return new printable_column_ex<int16_t>(col, delim);
+      return new printable_column_ex<int16_t>(col, delim, delim_last);
 
     case DS_T_INT32:
-      return new printable_column_ex<int32_t>(col, delim);
+      return new printable_column_ex<int32_t>(col, delim, delim_last);
 
     case DS_T_INT64:
-      return new printable_column_ex<int64_t>(col, delim);
+      return new printable_column_ex<int64_t>(col, delim, delim_last);
 
 
     case DS_T_UINT8:
-      return new printable_column_ex<uint8_t>(col, delim);
+      return new printable_column_ex<uint8_t>(col, delim, delim_last);
 
     case DS_T_UINT16:
-      return new printable_column_ex<uint16_t>(col, delim);
+      return new printable_column_ex<uint16_t>(col, delim, delim_last);
 
     case DS_T_UINT32:
-      return new printable_column_ex<uint32_t>(col, delim);
+      return new printable_column_ex<uint32_t>(col, delim, delim_last);
 
     case DS_T_UINT64:
-      return new printable_column_ex<uint64_t>(col, delim);
+      return new printable_column_ex<uint64_t>(col, delim, delim_last);
 
 
     case DS_T_FLOAT32:
-      return new printable_column_ex<float>(col, delim);
+      return new printable_column_ex<float>(col, delim, delim_last);
 
     case DS_T_FLOAT64:
-      return new printable_column_ex<double>(col, delim);
+      return new printable_column_ex<double>(col, delim, delim_last);
 
     case DS_T_STRING8:
-      return new printable_column_ex<const char *>(col, delim, quote);
+      return new printable_column_ex<const char *>(col, delim, delim_last, quote);
 
     case DS_T_STRING16:
-      return new printable_column_ex<const short *>(col, delim, quote);
+      return new printable_column_ex<const short *>(col, delim, delim_last, quote);
 
     case DS_T_STRING32:
-      return new printable_column_ex<const int *>(col, delim, quote);
+      return new printable_column_ex<const int *>(col, delim, delim_last, quote);
 
     case DS_T_INVALID:
     default:
@@ -233,14 +243,21 @@ convert(storage &stor, ostream &out, options &opt) {
 
   vector<printable_column *> cols;
   for (size_t k = 0; k < stor.cols() - 1; ++ k) {
-      cols.push_back(create(stor[k], opt.delim, opt.quote));
+      cols.push_back(create(stor[k], opt.delim, opt.delim, opt.quote));
     }
-  cols.push_back(create(stor[stor.cols() - 1], "\n", opt.quote));
+  cols.push_back(create(stor[stor.cols() - 1], opt.delim, "\n", opt.quote));
 
   if (opt.names) {
       for (size_t k = 0; k < cols.size(); ++ k) {
-          out << (k > 0 ? opt.delim : "" ) << opt.quote << cols[k] ->col().name() << opt.quote ;
+        const column & col = cols[k] ->col();
+        if (col.width() == 1) {
+          out << (k > 0 ? opt.delim : "" ) << opt.quote << col.name() << opt.quote ;
+        } else {
+          for (size_t n = 0; n < col.width(); ++ n) {
+            out << (k > 0 || n > 0 ? opt.delim : "" ) << opt.quote << col.name() << "_" << n << opt.quote ;
+          }
         }
+       }
       out << endl;
     }
 

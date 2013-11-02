@@ -62,6 +62,8 @@ csv2ds::usage(ostream &out, const string &prog)  {
       << TAB << TAB << "-m<number> <key> <value>"  << TAB << "add user defined metadata to column" << endl
       << TAB << TAB << "-m<name> <key> <value>"  << TAB << "add user defined metadata to column" << endl
       << TAB << TAB << "-m <key> <value>"  << TAB << "add user defined metadata to data storage" << endl
+      //<< TAB << TAB << "-w<name> <number>"  << TAB << "set width for column" << endl
+      //<< TAB << TAB << "-w<number> <number>"  << TAB << "set width for column" << endl
       << TAB << TAB << TAB << "For '-g' options, the type will choosen betwenn string or float64. If '-G' specified, then more tightly type guessing" << endl
       << TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
       << endl
@@ -260,6 +262,33 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
       continue;
     }
 
+/*
+    if (param[1] == 'w') {
+      char *endp = NULL;
+      long num = strtol(param.c_str() + 2, &endp, 10);
+
+      if (k == argc - 1) {
+        cerr << endl << "Error: *** Invalid input parameter " << argv[k] << " ***" << endl << endl;
+        usage(cerr, argv[0]);
+        return -1;
+      }
+
+      long w = atol(argv[++ k]);
+
+
+      if (endp != param.c_str() + param.length()) {
+        opt.name_with_width.push_back(make_pair(param.substr(2), w));
+        continue;
+      }
+
+      if (opt.width.size() < num) {
+        opt.width.resize(num, 1);
+      }
+
+      opt.width[num - 1] = w;
+      continue;
+    }
+*/
     cerr << endl << "Error: *** Invalid input parameter " << argv[k] << " ***" << endl << endl;
     usage(cerr, argv[0]);
     return -1;
