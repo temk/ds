@@ -126,7 +126,7 @@ column::init_filters() {
         push_filter(new filter_str(*this, int_type_, ext_type_, width_, buff_siz, name_, storage_.driver_, length_ > 0));
 	}
 	
-	flush();
+//	flush();
 }
 
 void 
