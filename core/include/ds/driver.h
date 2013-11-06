@@ -35,6 +35,8 @@ namespace ds {
 		virtual void read_dictionary(lookup &) = 0;
 		virtual void read_index(storage &) = 0;
 		virtual void read_index(column &)  = 0;
+
+        virtual int get_mode() const = 0;
 		
 	};
 }

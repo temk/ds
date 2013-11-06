@@ -18,17 +18,24 @@ using namespace ds;
 using namespace std;
 
 
-column::column(storage &s, string name) 
+/**
+ * c-tor called on read ds
+**/
+column::column(storage &s, string name)
     : error_handler(s), dirty_(false), name_(name), width_(1), length_(0), endian_(DS_E_INVALID),
 	int_type_(DS_T_INVALID), ext_type_(DS_T_INVALID), filter_(NULL), storage_(s) {
 		
 }
 
+/**
+ * c-tor called on add column
+**/
 column::column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian)
     : error_handler(s), dirty_(true), name_(name), width_(width), length_(0), endian_(endian),
 	int_type_(int_type), ext_type_(ext_type), filter_(NULL), storage_(s) {
 
 	init_filters();
+    flush();
 }
 
 void 
@@ -63,16 +70,14 @@ column &
 column::flush() {	
     if (dirty_) {
         filter_ ->flush();
+        storage_.driver_ ->write_index(*this);
     }
-    storage_.driver_ ->write_index(*this);
     return *this;
 }
 
 column &
 column::truncate(size_t len) {
-	if (dirty_) {
-		filter_ ->flush();
-	}
+    flush();
 	
 	dirty_ = true;
     storage_.driver_ ->truncate(name_, len * width_);
@@ -91,6 +96,8 @@ column::append(const void *data, size_t num) {
 
 int 
 column::read(size_t offset, size_t num, void *data) {	
+    flush();
+
 	size_t rd = min(length_ - offset, num);
     filter_ ->get(offset, rd, data);
 	return rd;
@@ -98,7 +105,9 @@ column::read(size_t offset, size_t num, void *data) {
 
 int 
 column::read(const void *indexes, int idx_siz, size_t num, void *data) {
-	size_t rd = min(length_ , num);
+    flush();
+
+    size_t rd = min(length_ , num);
     filter_ ->get(indexes, idx_siz, num, data);
 }
 
@@ -125,8 +134,6 @@ column::init_filters() {
 	if (is_str(int_type_)) {
         push_filter(new filter_str(*this, int_type_, ext_type_, width_, buff_siz, name_, storage_.driver_, length_ > 0));
 	}
-	
-//	flush();
 }
 
 void 

@@ -42,6 +42,8 @@ namespace ds {
 		void read_dictionary(lookup &);
 		void read_index(storage &);
 		void read_index(column &);		
+
+        int get_mode() const;
 	};
 }
 #endif // __DS_DRIVER_DIR_H__

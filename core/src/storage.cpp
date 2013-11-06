@@ -45,6 +45,7 @@ storage::storage(const string &path, int mode, size_t buff_siz)
 }
 
 storage::~storage() {
+  close(); // just to be sure
 }
 
 void 
@@ -82,7 +83,9 @@ storage::close() {
 		return;
 	}
 	
-	flush();
+    if (driver_ ->get_mode() & DS_O_WRITE) {
+      flush();
+    }
 	
 	driver_ ->close();
 	delete driver_;
@@ -136,7 +139,9 @@ storage::add(type_t type, const string &name,  size_t width, endian_t endian, ss
 	}
 	
     column *col = new column(*this, type, type, var, width, endian);
-	push(col, index);
+    push(col, index);
+
+    driver_ ->write_index(*this); // partial flush
 	return *col;
 }
 
@@ -149,7 +154,9 @@ storage::add(type_t type, type_t dict, const string &name,  size_t width, endian
 	
     column *col = new column(*this, type, dict, var, width, endian);
 	push(col, index);
-	return *col;
+
+    driver_ ->write_index(*this); // partial flush
+    return *col;
 }
 
 size_t 
@@ -168,6 +175,8 @@ void
 storage::pop(column *col) {	
 	col_by_index_.erase(col_by_index_.begin() + index_of(col));
 	col_by_name_.erase(col ->name());
+
+    driver_ ->write_index(*this); // partial flush
 }
 
 void 

@@ -476,3 +476,8 @@ driver_dir::read_index(column &col) {
 	
     col.init( int_type, ext_type, col_width, length, endian);
 }
+
+int
+driver_dir::get_mode() const {
+  return mode_;
+}
