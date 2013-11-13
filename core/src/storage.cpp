@@ -36,15 +36,16 @@ find_free_name(const string name, const map<string, column *> &map) {
 }
 
 storage::storage() 
- : col_num_(0), buff_siz_(0), driver_(NULL) {
+ : col_num_(0), buff_siz_(0), driver_(NULL), mode_(0) {
 }
 
 storage::storage(const string &path, int mode, size_t buff_siz) 
- : col_num_(0), buff_siz_(buff_siz), driver_(0L) {	
+    : col_num_(0), buff_siz_(buff_siz), driver_(0L), mode_(0) {
 	 open(path, mode, buff_siz);
 }
 
 storage::~storage() {
+    close();
 }
 
 void 
@@ -59,6 +60,7 @@ storage::open(const string &path, int mode, size_t buff_siz) {
 		throw ex;
 	}
 	
+    mode_ = mode;
 	driver_ = d;
 	driver_ ->read_index(*this);	
 }
@@ -69,11 +71,13 @@ storage::flush() {
 		return;
 	}
 	
-	for (col_list_t::iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter) {
+    if (mode_ & DS_O_WRITE) {
+        for (col_list_t::iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter) {
 		(*iter) ->flush();
-	}	
-	
-	driver_ ->write_index(*this);
+        }
+
+        driver_ ->write_index(*this);
+    }
 }
 
 void 
@@ -82,16 +86,19 @@ storage::close() {
 		return;
 	}
 	
-	flush();
+    if (mode_ & DS_O_WRITE) {
+        flush();
+    }
 	
 	driver_ ->close();
 	delete driver_;
 	driver_ = NULL;
+    mode_ = 0;
 }
 
 bool 
 storage::is_open() const {
-	return driver_ != NULL;
+    return driver_ != NULL && mode_ != 0;
 }
 
 const column & 
