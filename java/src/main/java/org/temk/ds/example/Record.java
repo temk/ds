@@ -41,6 +41,8 @@ public class Record extends Base {
             writer.write(new Record("record", k * 2.0, k, Number.ONE));
         }
         
+        writer.write(new Record(null, 0, 0, Number.ONE));
+        
         writer.flush();
         writer.close();
         

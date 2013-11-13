@@ -7,6 +7,7 @@
 
 #include <map>
 #include <algorithm>
+#include <stdexcept>
 
 namespace ds {
   template<typename T>
@@ -91,8 +92,14 @@ jni_string_accessor<T>::jni_string_accessor(JNIEnv *env, bool singleton)
 
 template<typename T>void
 jni_string_accessor<T>::get(size_t k, const void *data, string_container &s) {
+
   jobjectArray array = (jobjectArray)data;
   jstring str = (jstring )env_ ->GetObjectArrayElement(array, k);
+
+  if (str == NULL) {
+      throw std::runtime_error("jni_string_accessor<T>::get: Null Pointer");
+  }
+
   s.siz = sizeof(jchar);
   s.len = env_ ->GetStringLength(str);
   s.str = env_ ->GetStringCritical(str, 0);

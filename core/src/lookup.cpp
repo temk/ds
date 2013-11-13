@@ -8,6 +8,7 @@
 #include <vector>
 #include <limits>
 #include <utility>
+#include <stdexcept>
 
 #define KEY(t1, t2) ((t1 << 8) | t2)
 
@@ -151,6 +152,9 @@ lookup::create(const error_handler &ref, const string &key, type_t int_type, typ
 // ===================================================================================================
 template<typename T>void
 default_string_accessor<T>::get(size_t k, const void *p, string_container &s) {
+    if (p == NULL) {
+        throw runtime_error("default_string_accessor<T>::get: Null Pointer");
+    }
 	const T * const*v = reinterpret_cast<const T * const*>(p);
 	s.siz = sizeof(T);
 	s.len = str_length(static_cast<const T *>(v[k]));
@@ -159,7 +163,11 @@ default_string_accessor<T>::get(size_t k, const void *p, string_container &s) {
 }
 template<typename T>void
 default_string_accessor<T>::set(size_t k, const string_container &s, void *p ) {
-	const T * *v = static_cast<const T * *>(p);
+    if (p == NULL) {
+        throw runtime_error("default_string_accessor<T>::set: Null Pointer");
+    }
+
+    const T * *v = static_cast<const T * *>(p);
 	v[k] = static_cast<const T*>(s.str);
 }
 	
