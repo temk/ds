@@ -50,6 +50,7 @@ namespace ds {
 		col_map_t col_by_name_;
 		col_list_t col_by_index_;
 		
+        int mode_;
 		driver *driver_;
 		warn_handler_t warn_handler_;
 		

@@ -213,14 +213,15 @@ jni_get_meta(JNIEnv *env, const meta &m) {
 }
 
 // ========================================================================================================
+#include <fstream>
 
 JNIEXPORT void JNICALL 
 Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstring jmode, jlong buff_siz) {
 	string path, mode;	
 	jni_to_string(env, jpath, path);
 	jni_to_string(env, jmode, mode);
-	
-	try {
+
+    try {
         storage *stor = new storage(path, str_to_mode(mode.c_str()), buff_siz);
         set_handle(env, self, stor);
 

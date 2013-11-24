@@ -22,7 +22,9 @@ if (DS_BUILD_CORE)
         target_link_libraries(dsjni ds)
 
         set(CMAKE_JAVA_TARGET_OUTPUT_NAME ds)
-        add_jar(java src/main/java/org/temk/ds/*.java)
+        add_jar(java src/main/java/org/temk/ds/*.java
+        			 src/main/java/org/temk/ds/util/*.java
+        			 src/main/java/org/temk/ds/example/*.java)
 
         install(TARGETS dsjni DESTINATION lib)
         install(FILES src/main/native/include/ds/jni/strings.h DESTINATION include/ds/jni)
