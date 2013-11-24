@@ -2,6 +2,7 @@ package org.temk.ds.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Stack;
 import org.temk.ds.Column;
 import org.temk.ds.DataStorage;
 import org.temk.ds.Persistent;
@@ -25,8 +26,14 @@ public class DataStorageReader<T> {
         this.bufLen  = 0;
         
         Class c = clazz;
+        Stack<Class> stack = new Stack<Class>();
         while(c != null) {
-            for (Field field: c.getDeclaredFields()) {
+            stack.push(c);
+            c = c.getSuperclass();
+        }
+        
+        while(!stack.isEmpty()) {
+            for (Field field: stack.peek().getDeclaredFields()) {
                 Persistent p = field.getAnnotation(Persistent.class);
                 if (p != null) {
                     field.setAccessible(true);
@@ -43,7 +50,7 @@ public class DataStorageReader<T> {
                 }
             }
             
-            c = c.getSuperclass();
+            stack.pop();
         }
         fetch();
     }
