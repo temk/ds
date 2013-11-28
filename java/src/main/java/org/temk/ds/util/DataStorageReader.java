@@ -1,59 +1,39 @@
 package org.temk.ds.util;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Stack;
 import org.temk.ds.Column;
 import org.temk.ds.DataStorage;
-import org.temk.ds.Persistent;
+import org.temk.ds.persistent.DefaultFieldType;
+import org.temk.ds.persistent.Persistent;
 
-public class DataStorageReader<T> {
-    private int bufSize;
-    private int bufLen;
-    private int counter;
-    private Class<T> clazz;
-    private DataStorage ds;
-    private ArrayList<BufferedColumn> list = new ArrayList<BufferedColumn>();
-
+public class DataStorageReader<T> extends DataStorageWrapper<T> {
+    
+    private int bufLen = 0;
     private long totalRead = 0;
     private long available = Long.MAX_VALUE;
     
     public DataStorageReader(DataStorage ds, Class<T> clazz, int bufSize) {
-        this.ds = ds;
-        this.clazz = clazz;
-        this.bufSize = bufSize;
-        this.counter = 0;
-        this.bufLen  = 0;
-        
-        Class c = clazz;
-        Stack<Class> stack = new Stack<Class>();
-        while(c != null) {
-            stack.push(c);
-            c = c.getSuperclass();
+        this(ds, clazz, bufSize, DefaultFieldType.TRANSIENT);
+    }
+    
+    public DataStorageReader(DataStorage ds, Class<T> clazz) {
+        this(ds, clazz, Buffer.DEFAULT_BUF_SIZ, DefaultFieldType.TRANSIENT);
+    }
+    
+    public DataStorageReader(DataStorage ds, Class<T> clazz, DefaultFieldType ft) {
+        this(ds, clazz, Buffer.DEFAULT_BUF_SIZ, ft);
+    }
+    
+    public DataStorageReader(DataStorage ds, Class<T> clazz, int bufSize, DefaultFieldType ft) {
+        super(ds, clazz, bufSize, ft, false);
+
+        for (BufferedColumn bc: list) {
+            available = Math.min(available, bc.column.getLength());                        
         }
-        
-        while(!stack.isEmpty()) {
-            for (Field field: stack.peek().getDeclaredFields()) {
-                Persistent p = field.getAnnotation(Persistent.class);
-                if (p != null) {
-                    field.setAccessible(true);
 
-                    String name = p.value();
-                    if (name.length() == 0) {
-                        name = field.getName();
-                    }
-
-                    Column col = ds.getColumn(name);
-
-                    available = Math.min(available, col.getLength());                        
-                    list.add(new BufferedColumn(Buffer.create(bufSize, field), col));
-                }
-            }
-            
-            stack.pop();
-        }
         fetch();
     }
+
     
     public T read() {
         try {
@@ -75,6 +55,9 @@ public class DataStorageReader<T> {
                 bc.buffer.read(obj, counter);
             }
             ++ counter;
+            if (postLoad != null) {
+                postLoad.invoke(obj);
+            }
             return obj;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -85,7 +68,7 @@ public class DataStorageReader<T> {
         if (totalRead >= available)
             return false;
         
-        long rd = Math.min(available - totalRead, bufSize);
+        long rd = Math.min(available - totalRead, buffSize);
         for (BufferedColumn bc: list) {
             bc.fetch(totalRead, rd);
         }
@@ -97,6 +80,18 @@ public class DataStorageReader<T> {
     
     public long getAvailable() {
         return available;
+    }
+
+    @Override
+    BufferedColumn processField(Field field, Persistent p, int bufSize, boolean createIfNotExists) {
+        String name = field.getName();
+        if (p != null && p.value().length() > 0) {
+            name = p.value();
+        }
+
+        Column col = ds.getColumn(name);
+
+        return new BufferedColumn(Buffer.create(bufSize, field), col);
     }
     
     

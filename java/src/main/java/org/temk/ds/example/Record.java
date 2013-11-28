@@ -1,11 +1,12 @@
 package org.temk.ds.example;
 
 
-import org.temk.ds.Column;
 import org.temk.ds.DataStorage;
+import org.temk.ds.persistent.Persistent;
+import org.temk.ds.persistent.PostLoad;
+import org.temk.ds.persistent.PrePersist;
 import org.temk.ds.util.DataStorageReader;
 import org.temk.ds.util.DataStorageWriter;
-import org.temk.ds.Persistent;
 
 
 public class Record extends Base {
@@ -28,20 +29,30 @@ public class Record extends Base {
         this.timestamp = timestamp;
     }
 
+    @PostLoad
+    private void hello() {
+        System.out.println("Hello " + name + "!");
+    }
+    
+    @PrePersist
+    private void bye() {
+        System.out.println("Bye " + name + "!");
+    }
+    
     @Override
     public String toString() {
         return "Record{" + "name=" + name + ", value=" + value + ", timestamp=" + timestamp + ", number=" + getNumber().toString() + '}';
     }
 
     public static void main(String [] args) {
-        DataStorage ds = new DataStorage("/tmp/temp.ds");                
+        DataStorage ds = new DataStorage("/tmp/temp.ds", "rwct", 3);                
         DataStorageWriter<Record> writer = new DataStorageWriter<Record>(ds, Record.class, 12, true);
         
         for (int k = 0; k < 20; ++ k) {
             writer.write(new Record("record", k * 2.0, k, Number.ONE));
         }
         
-        writer.write(new Record(null, 0, 0, Number.ONE));
+        writer.write(new Record("Ok", 0, 0, Number.ONE));
         
         writer.flush();
         writer.close();

@@ -1,6 +1,6 @@
 package org.temk.ds.example;
 
-import org.temk.ds.Persistent;
+import org.temk.ds.persistent.Persistent;
 
 public class Base {
     public static enum Number {
