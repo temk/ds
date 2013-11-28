@@ -23,7 +23,8 @@ if (DS_BUILD_CORE)
 
         set(CMAKE_JAVA_TARGET_OUTPUT_NAME ds)
         add_jar(java src/main/java/org/temk/ds/*.java
-        			 src/main/java/org/temk/ds/util/*.java
+                                 src/main/java/org/temk/ds/util/*.java
+        			 src/main/java/org/temk/ds/persistent/*.java
         			 src/main/java/org/temk/ds/example/*.java)
 
         install(TARGETS dsjni DESTINATION lib)
