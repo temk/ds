@@ -8,6 +8,8 @@ if (DS_BUILD_CORE)
         include(UseJava)
 
 
+        file(GLOB_RECURSE JAVA_SOURCES *.java)
+
         set(JNI_INCLUDE_DIRS ${JAVA_ROOT}/include
         ${JAVA_ROOT}/include/linux)
 
@@ -22,10 +24,7 @@ if (DS_BUILD_CORE)
         target_link_libraries(dsjni ds)
 
         set(CMAKE_JAVA_TARGET_OUTPUT_NAME ds)
-        add_jar(java src/main/java/org/temk/ds/*.java
-                                 src/main/java/org/temk/ds/util/*.java
-        			 src/main/java/org/temk/ds/persistent/*.java
-        			 src/main/java/org/temk/ds/example/*.java)
+        add_jar(java ${JAVA_SOURCES})
 
         install(TARGETS dsjni DESTINATION lib)
         install(FILES src/main/native/include/ds/jni/strings.h DESTINATION include/ds/jni)
@@ -33,7 +32,7 @@ if (DS_BUILD_CORE)
         install_jar(java ${CMAKE_INSTALL_PREFIX}/lib/java)
 
         if (DS_BUILD_DOCS)
-            create_javadoc(java FILES src/main/java/org/temk/ds/*.java INSTALLPATH doc)
+            create_javadoc(java FILES ${JAVA_SOURCES} INSTALLPATH doc)
         endif(DS_BUILD_DOCS)
     endif(DS_BUILD_JAVA)
 endif(DS_BUILD_CORE)

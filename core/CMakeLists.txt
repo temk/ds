@@ -31,7 +31,7 @@ if (DS_BUILD_CORE)
 			add_custom_target(run ALL ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 					         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                                                  COMMENT "Generating API documentation with Doxygen" VERBATIM)
-			install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cpp DESTINATION doc)
+			install(FILES ${CMAKE_CURRENT_BINARY_DIR}/core/cpp DESTINATION doc)
 		endif(DOXYGEN_FOUND)
 	endif (DS_BUILD_DOCS)
 endif(DS_BUILD_CORE)
