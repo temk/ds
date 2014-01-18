@@ -19,15 +19,17 @@ if (DS_BUILD_CORE)
         include_directories(${JNI_INCLUDE_DIRS} ${ds-core_SOURCE_DIR}/include src/main/native/include)
 
         add_library(dsjni  SHARED ${SOURCES})
+        
 
         link_directories(${ds-core_BINARY_DIR})
         target_link_libraries(dsjni ds)
 
+        install(TARGETS dsjni DESTINATION lib)
+        install(FILES src/main/native/include/ds/jni/strings.h DESTINATION include/ds/jni)
+
         set(CMAKE_JAVA_TARGET_OUTPUT_NAME ds)
         add_jar(java ${JAVA_SOURCES})
 
-        install(TARGETS dsjni DESTINATION lib)
-        install(FILES src/main/native/include/ds/jni/strings.h DESTINATION include/ds/jni)
 
         install_jar(java ${CMAKE_INSTALL_PREFIX}/lib/java)
 

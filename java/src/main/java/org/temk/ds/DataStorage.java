@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class DataStorage {
     static {
-        System.loadLibrary("dsjni");
+        load_native();
     }
     /**
      * pointer to C++ DataStorage object
@@ -182,4 +182,29 @@ public class DataStorage {
         }
         return false;
     }
+    
+    private static void load_native() {
+//        try {
+//            File file = File.createTempFile("libdsjni", ".so");
+//            file.setExecutable(true);
+//            file.deleteOnExit();
+//            
+//            InputStream is = DataStorage.class.getResourceAsStream("/libdsjni.so");
+//            FileOutputStream os = new FileOutputStream(file);
+//            
+//            byte [] buffer = new byte[1 << 20];
+//            while(is.available() > 0) {
+//                int rd = is.read(buffer);
+//                os.write(buffer, 0, rd);
+//            }
+//            is.close();
+//            os.close();
+//
+//            System.load(file.getAbsolutePath());
+//        } catch (IOException t) {
+//            throw new RuntimeException("Fail to load libdsjni.so: ", t);
+//        }
+        System.loadLibrary("dsjni");
+    }
+    
 }

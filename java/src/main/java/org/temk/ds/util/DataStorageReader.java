@@ -1,6 +1,7 @@
 package org.temk.ds.util;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 import org.temk.ds.Column;
 import org.temk.ds.DataStorage;
 import org.temk.ds.persistent.DefaultFieldType;
@@ -11,7 +12,7 @@ public class DataStorageReader<T> extends DataStorageWrapper<T> {
     private int bufLen = 0;
     private long totalRead = 0;
     private long available = Long.MAX_VALUE;
-    
+
     public DataStorageReader(DataStorage ds, Class<T> clazz, int bufSize) {
         this(ds, clazz, bufSize, DefaultFieldType.TRANSIENT);
     }
@@ -53,6 +54,11 @@ public class DataStorageReader<T> extends DataStorageWrapper<T> {
         try {
             for (BufferedColumn bc: list) {
                 bc.buffer.read(obj, counter);
+            }
+            if (metaMap.size() > 0) {
+                for (Map.Entry<Field, String> e: metaMap.entrySet()) {
+                    e.getKey().set(obj, e.getValue());
+                }
             }
             ++ counter;
             if (postLoad != null) {
