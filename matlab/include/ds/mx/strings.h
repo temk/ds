@@ -9,7 +9,21 @@ using namespace ds;
 using namespace std;
 
 #include <mex.h>
-extern "C" mxArray* mxCreateReference(mxArray*);
+#if 0
+	extern "C" mxArray* mxCreateReference(mxArray*);
+#else
+namespace matrix{ 
+	namespace detail { 
+		namespace noninlined {
+			namespace mx_array_api {
+				mxArray* mxCreateReference(mxArray const*);
+			}
+		}
+	}
+}
+
+using namespace matrix::detail::noninlined::mx_array_api;
+#endif // 	
 
 namespace ds {
   template<typename T>
