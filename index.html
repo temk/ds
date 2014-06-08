@@ -1,115 +1,100 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>Ds by temk</title>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Ds : " />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Ds</title>
   </head>
 
   <body>
-    <div id="container">
-      <div class="inner">
 
-        <header>
-          <h1>Ds</h1>
-          <h2></h2>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/temk/ds">View on GitHub</a>
+
+          <h1 id="project_title">Ds</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/temk/ds/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/temk/ds/tarball/master">Download this project as a tar.gz file</a>
+            </section>
         </header>
+    </div>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/temk/ds/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/temk/ds/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/temk/ds" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="data-storage-ds-library" class="anchor" href="#data-storage-ds-library"><span class="octicon octicon-link"></span></a>Data Storage (DS) library</h1>
 
-        <hr>
+<p>The library is intended to serialize and de-serialize the large massive of primitives.
+The data is organized as a set of named columns that allows to store heterogeneous-type matrices on the disk.
+The main purpose of the library is to replace CSV format which is extremely slow.</p>
 
-        <section id="main_content">
-<article class="markdown-body entry-content"
-        itemprop="mainContentOfPage"><h1>
-        <a name="user-content-data-storage-ds-library" class="anchor"
-        href="#data-storage-ds-library"><span class="octicon
-        octicon-link"></span></a>Data Storage (DS) library</h1>
-        
-        <p>The library is intended to serialize and de-serialize the large
-        massive of primitives.
-        The data is organized as a set of named columns that allows to store
-        heterogeneous-type matrices on the disk.
-        The main purpose of the library is to replace CSV format which is
-        extremely slow.</p>
-        
-        <p>Supported data types are: Booleans, integers, floating point
-        numbers and strings.</p>
-        
-        <p>In order to serialize the string the dictionary is used.
-        So, it is quite efficient when the column of large length contains
-        small number of different strings.</p>
-        
-        <h2>
-        <a name="user-content-also" class="anchor" href="#also"><span
-        class="octicon octicon-link"></span></a>Also:</h2>
-        
-        <ol class="task-list">
-        <li>Data is stored in a binary format</li>
-        <li>Byte order swap is applied only when it is needed</li>
-        <li>Each column is saved in a separate file. This allows to add
-        efficiently new columns and new rows</li>
-        <li>It supports conversion between ds and csv formats</li>
-        </ol><h2>
-        <a name="user-content-supported-languages" class="anchor"
-        href="#supported-languages"><span class="octicon
-        octicon-link"></span></a>Supported languages:</h2>
-        
-        <ol class="task-list">
-        <li>C/C++</li>
-        <li>Java</li>
-        <li>Matlab</li>
-        <li>More will be added</li>
-        </ol><h2>
-        <a name="user-content-building" class="anchor"
-        href="#building"><span class="octicon
-        octicon-link"></span></a>Building</h2>
-        
-        <ol class="task-list">
-        <li>edit cmake.config file</li>
-        <li>mkdir build</li>
-        <li>cd build</li>
-        <li>cmake .. </li>
-        <li>make </li>
-        <li>make install</li>
-        </ol><h3>
-        <a name="user-content-matlab-wrapper" class="anchor"
-        href="#matlab-wrapper"><span class="octicon
-        octicon-link"></span></a>matlab wrapper</h3>
-        
-        <p>Please enter mex directory from Matlab and then run compile.m</p>
-        
-        <h2>
-        <a name="user-content-license" class="anchor" href="#license"><span
-        class="octicon octicon-link"></span></a>License</h2>
-        
-        <p>AS IS, FREE for Non-Commercial usage</p>
-        
-        <h2>
-        <a name="user-content-site-and-documentations" class="anchor"
-        href="#site-and-documentations"><span class="octicon
-        octicon-link"></span></a>Site and documentations</h2>
-        
-        <p><a
-        href="http://ds.temk.org/">http://ds.temk.org/</a></p></article>        
-        
-        <footer>
-          Ds is maintained by <a href="https://github.com/temk">temk</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+<p>Supported data types are: Booleans, integers, floating point numbers and strings.</p>
 
-                  <script type="text/javascript">
+<p>In order to serialize the string the dictionary is used.
+So, it is quite efficient when the column of large length contains small number of different strings.</p>
+
+<h2>
+<a name="also" class="anchor" href="#also"><span class="octicon octicon-link"></span></a>Also:</h2>
+
+<ol>
+<li>Data is stored in a binary format</li>
+<li>Byte order swap is applied only when it is needed</li>
+<li>Each column is saved in a separate file. This allows to add efficiently new columns and new rows</li>
+<li>It supports conversion between ds and csv formats</li>
+</ol><h2>
+<a name="supported-languages" class="anchor" href="#supported-languages"><span class="octicon octicon-link"></span></a>Supported languages:</h2>
+
+<ol>
+<li>C/C++</li>
+<li>Java</li>
+<li>Matlab</li>
+<li>More will be added</li>
+</ol><h2>
+<a name="building" class="anchor" href="#building"><span class="octicon octicon-link"></span></a>Building</h2>
+
+<ol>
+<li>edit cmake.config file</li>
+<li>mkdir build</li>
+<li>cd build</li>
+<li>cmake .. </li>
+<li>make </li>
+<li>make install</li>
+</ol><h3>
+<a name="matlab-wrapper" class="anchor" href="#matlab-wrapper"><span class="octicon octicon-link"></span></a>matlab wrapper</h3>
+
+<p>Please enter mex directory from Matlab and then run compile.m</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>AS IS, FREE for Non-Commercial usage</p>
+
+<h2>
+<a name="site-and-documentations" class="anchor" href="#site-and-documentations"><span class="octicon octicon-link"></span></a>Site and documentations</h2>
+
+<p><a href="http://ds.temk.org/">http://ds.temk.org/</a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Ds maintained by <a href="https://github.com/temk">temk</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -120,7 +105,6 @@
             } catch(err) {}
           </script>
 
-      </div>
-    </div>
+
   </body>
 </html>
