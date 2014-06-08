@@ -31,39 +31,79 @@
         <hr>
 
         <section id="main_content">
-          <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-        </section>
-
+<article class="markdown-body entry-content"
+        itemprop="mainContentOfPage"><h1>
+        <a name="user-content-data-storage-ds-library" class="anchor"
+        href="#data-storage-ds-library"><span class="octicon
+        octicon-link"></span></a>Data Storage (DS) library</h1>
+        
+        <p>The library is intended to serialize and de-serialize the large
+        massive of primitives.
+        The data is organized as a set of named columns that allows to store
+        heterogeneous-type matrices on the disk.
+        The main purpose of the library is to replace CSV format which is
+        extremely slow.</p>
+        
+        <p>Supported data types are: Booleans, integers, floating point
+        numbers and strings.</p>
+        
+        <p>In order to serialize the string the dictionary is used.
+        So, it is quite efficient when the column of large length contains
+        small number of different strings.</p>
+        
+        <h2>
+        <a name="user-content-also" class="anchor" href="#also"><span
+        class="octicon octicon-link"></span></a>Also:</h2>
+        
+        <ol class="task-list">
+        <li>Data is stored in a binary format</li>
+        <li>Byte order swap is applied only when it is needed</li>
+        <li>Each column is saved in a separate file. This allows to add
+        efficiently new columns and new rows</li>
+        <li>It supports conversion between ds and csv formats</li>
+        </ol><h2>
+        <a name="user-content-supported-languages" class="anchor"
+        href="#supported-languages"><span class="octicon
+        octicon-link"></span></a>Supported languages:</h2>
+        
+        <ol class="task-list">
+        <li>C/C++</li>
+        <li>Java</li>
+        <li>Matlab</li>
+        <li>More will be added</li>
+        </ol><h2>
+        <a name="user-content-building" class="anchor"
+        href="#building"><span class="octicon
+        octicon-link"></span></a>Building</h2>
+        
+        <ol class="task-list">
+        <li>edit cmake.config file</li>
+        <li>mkdir build</li>
+        <li>cd build</li>
+        <li>cmake .. </li>
+        <li>make </li>
+        <li>make install</li>
+        </ol><h3>
+        <a name="user-content-matlab-wrapper" class="anchor"
+        href="#matlab-wrapper"><span class="octicon
+        octicon-link"></span></a>matlab wrapper</h3>
+        
+        <p>Please enter mex directory from Matlab and then run compile.m</p>
+        
+        <h2>
+        <a name="user-content-license" class="anchor" href="#license"><span
+        class="octicon octicon-link"></span></a>License</h2>
+        
+        <p>AS IS, FREE for Non-Commercial usage</p>
+        
+        <h2>
+        <a name="user-content-site-and-documentations" class="anchor"
+        href="#site-and-documentations"><span class="octicon
+        octicon-link"></span></a>Site and documentations</h2>
+        
+        <p><a
+        href="http://ds.temk.org/">http://ds.temk.org/</a></p></article>        
+        
         <footer>
           Ds is maintained by <a href="https://github.com/temk">temk</a><br>
           This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
