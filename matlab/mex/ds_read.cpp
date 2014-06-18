@@ -29,7 +29,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	uint64_t * cols = (uint64_t *)mxGetData(prhs[1]);
 	uint64_t offs = *(uint64_t *)mxGetData(prhs[2]);
-	uint64_t tnum = *(uint64_t *)mxGetData(prhs[2]);
+	uint64_t tnum = *(uint64_t *)mxGetData(prhs[3]);
 	size_t col_num = mxGetNumberOfElements(prhs[1]);
 	
 	ds_handle stor;

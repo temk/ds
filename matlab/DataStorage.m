@@ -187,6 +187,10 @@ classdef DataStorage < handle
         %
             [row_offs, row_idx, count] = get_parameters(self, {'Offset', 1, 'Rows', [], 'Count', 0}, varargin);
             col_idx = names_to_indexes(self, cols);
+
+            if (row_offs < 1)
+                error(['Illegal offset' num2str(row_offs)]);
+            end
             
             if ~isempty(row_idx)
                 data = ds_read_index(self.handle, uint64(col_idx - 1), uint64(row_idx - 1));
