@@ -32,4 +32,16 @@ a = ds.read('A');
 [v] = ds.get_meta('A', 'opsa2');
 [v] = ds.get_meta('A', 'opsa3');
 
+ds.flush();
 ds.close();
+%%
+ds = DataStorage('/tmp/ds', 'Mode', 'rwct');
+ds.add('double', 'Name', 'A');
+
+ds.append('A', [1:100]');
+ds.flush();
+ds.close();
+%%
+ds = DataStorage('/tmp/ds', 'Mode', 'r');
+x  = ds.read('A', 'Offset', 20, 'Count', 5);
+
