@@ -15,13 +15,17 @@ using namespace std;
 
 static const string INDEX("index");
 
-static string 
-find_free_name(const string name, const map<string, column *> &map) {
+static string
+find_free_name(const string name, const map<string, column *> &map, bool unique = false) {
 	string result = name;
 	if (result.empty()) {
 		result = "var";
 	}
 	if (map.count(result) > 0) {
+        if (unique) {
+            throw runtime_error("column already exists");
+        }
+
 		for (int k = 0; ; ++ k) {
 			char buff[16];
 			snprintf(buff, sizeof(buff), "%d", k);
@@ -30,16 +34,16 @@ find_free_name(const string name, const map<string, column *> &map) {
 				result = str;
 				break;
 			}
-		}	
+		}
 	}
 	return result;
 }
 
-storage::storage() 
+storage::storage()
  : col_num_(0), buff_siz_(0), driver_(NULL), mode_(0) {
 }
 
-storage::storage(const string &path, int mode, size_t buff_siz) 
+storage::storage(const string &path, int mode, size_t buff_siz)
     : col_num_(0), buff_siz_(buff_siz), driver_(0L), mode_(0) {
 	 open(path, mode, buff_siz);
 }
@@ -48,29 +52,29 @@ storage::~storage() {
   close(); // just to be sure
 }
 
-void 
+void
 storage::open(const string &path, int mode, size_t buff_siz) {
 	driver *d = new driver_dir();
 	try {
 		d ->warn.set(warn.get());
-		d ->info.set(info.get());		
+		d ->info.set(info.get());
 		d ->open(path, mode);
 	} catch(const runtime_error &ex) {
 		delete d;
 		throw ex;
 	}
-	
+
     mode_ = mode;
 	driver_ = d;
-	driver_ ->read_index(*this);	
+	driver_ ->read_index(*this);
 }
 
-void 
+void
 storage::flush() {
 	if (!is_open()) {
 		return;
 	}
-	
+
     if (mode_ & DS_O_WRITE) {
         for (col_list_t::iterator iter = col_by_index_.begin(); iter != col_by_index_.end(); ++ iter) {
 		(*iter) ->flush();
@@ -80,28 +84,28 @@ storage::flush() {
     }
 }
 
-void 
+void
 storage::close() {
 	if (!is_open()) {
 		return;
 	}
-	
+
     if (driver_ ->get_mode() & DS_O_WRITE) {
       flush();
     }
-	
+
 	driver_ ->close();
 	delete driver_;
 	driver_ = NULL;
     mode_ = 0;
 }
 
-bool 
+bool
 storage::is_open() const {
     return driver_ != NULL && mode_ != 0;
 }
 
-const column & 
+const column &
 storage::column_at(size_t idx) const {
 	if (idx >= col_by_index_.size()) {
 		err << "storage::column_at: No such column index: " << idx << endl;
@@ -109,7 +113,7 @@ storage::column_at(size_t idx) const {
 	return *col_by_index_[idx];
 }
 
-const column & 
+const column &
 storage::column_at(const string &name) const {
 	col_map_t::const_iterator iter = col_by_name_.find(name);
 	if (iter == col_by_name_.end()) {
@@ -118,7 +122,7 @@ storage::column_at(const string &name) const {
 	return *(iter ->second);
 }
 
-column & 
+column &
 storage::column_at(size_t idx) {
 	if (idx >= col_by_index_.size()) {
 		err << "storage::column_at: No such column index: " << idx << endl;
@@ -126,7 +130,7 @@ storage::column_at(size_t idx) {
 	return *col_by_index_[idx];
 }
 
-column & 
+column &
 storage::column_at(const string &name) {
 	col_map_t::iterator iter = col_by_name_.find(name);
 	if (iter == col_by_name_.end()) {
@@ -137,11 +141,11 @@ storage::column_at(const string &name) {
 
 column &
 storage::add(type_t type, const string &name,  size_t width, endian_t endian, ssize_t index) {
-	string var = find_free_name(name, col_by_name_);
+	string var = find_free_name(name, col_by_name_, (mode_ & DS_O_UNIQUE) != 0);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
-	
+
     column *col = new column(*this, type, type, var, width, endian);
     push(col, index);
 
@@ -151,11 +155,11 @@ storage::add(type_t type, const string &name,  size_t width, endian_t endian, ss
 
 column &
 storage::add(type_t type, type_t dict, const string &name,  size_t width, endian_t endian, ssize_t index) {
-	string var = find_free_name(name, col_by_name_);
+	string var = find_free_name(name, col_by_name_, (mode_ & DS_O_UNIQUE) != 0);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
-	
+
     column *col = new column(*this, type, dict, var, width, endian);
 	push(col, index);
 
@@ -163,35 +167,35 @@ storage::add(type_t type, type_t dict, const string &name,  size_t width, endian
     return *col;
 }
 
-size_t 
+size_t
 storage::index_of(const column *col) const {
 	for (size_t k = 0; k < col_by_index_.size(); ++ k) {
 		if (col_by_index_[k] == col) {
 			return k;
 		}
 	}
-	
+
 	err << "storage::index_of: column '" << col -> name() << "' not found." << endl;
 }
 
 
-void 
-storage::pop(column *col) {	
+void
+storage::pop(column *col) {
 	col_by_index_.erase(col_by_index_.begin() + index_of(col));
 	col_by_name_.erase(col ->name());
 
     driver_ ->write_index(*this); // partial flush
 }
 
-void 
+void
 storage::push(column *col, ssize_t index) {
 	if (index == -1) {
 		index = col_by_index_.size();
 	}
-	
+
 	col_by_index_.insert(col_by_index_.begin() + index, col);
 	col_by_name_[col ->name()] = col;
-	
+
 	++ col_num_;
 }
 

@@ -42,6 +42,9 @@ main(int argc, char **argv) {
     if (opt.force) {
       flags |= DS_O_TRUNC;
     }
+    if (opt.safe) {
+            flags |= DS_O_SAFE;
+    }
 
     storage stor(opt.output, flags);
 

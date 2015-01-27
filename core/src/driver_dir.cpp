@@ -12,13 +12,16 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include <sys/file.h>
+
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fcntl.h>
 
 using namespace ds;
 using namespace std;
 
-#if defined(WIN32) 
+#if defined(WIN32)
 #	define PATH_SEPARATOR '\\'
 #else
 #	define PATH_SEPARATOR '/'
@@ -44,10 +47,10 @@ driver_dir::read_field(istream &in, const string &magic, T *val) {
 	if (temp != magic) {
 		err << "driver_dir::read_field: malformed index: expected " << magic << " but found " << temp << endl;
 	}
-	
+
 	if (val) {
 		in >> *val;
-	}	
+	}
 }
 
 template<typename T>
@@ -56,50 +59,50 @@ size_t get_index(const void *data, size_t k) {
 }
 
 typedef size_t (*accessor_t)(const void *, size_t);
- 
+
  accessor_t get_accessor(int siz) {
 	switch(siz) {
-		case 1: return &get_index<unsigned char>;		
-		case 2: return &get_index<unsigned short>;		
-		case 4: return &get_index<unsigned int>;		
-		case 8: return &get_index<unsigned long>;		
+		case 1: return &get_index<unsigned char>;
+		case 2: return &get_index<unsigned short>;
+		case 4: return &get_index<unsigned int>;
+		case 8: return &get_index<unsigned long>;
 		default:
 			return NULL;
 	}
 }
 
-driver_dir::driver_dir() 
-	: mode_(0) {
+driver_dir::driver_dir()
+	: mode_(0), file_(-1) {
 }
 
-driver_dir::~driver_dir() {	
+driver_dir::~driver_dir() {
 }
-		
+
 void
 driver_dir::construct_filename(const string &key, string &result) const {
 	result = base_ + PATH_SEPARATOR + key.c_str();
 }
 
-void 
+void
 driver_dir::construct_fullpath(const string &path, string &fullpath) const {
 	string parent = ".";
 	string name = path;
-	
+
 	string::size_type pos = path.rfind(PATH_SEPARATOR);
 	if (pos != string::npos) {
 		parent = path.substr(0, pos);
 		name   = path.substr(pos + 1);
 	}
-	
+
 	char tmp[PATH_MAX];
 	const char *p = realpath(parent.c_str(), tmp);
 	if (p == NULL) {
-		err << "driver_dir::construct_fullpath: parent folder '" 
+		err << "driver_dir::construct_fullpath: parent folder '"
 		    << parent
 			<< "' not exists or not available."
 			<< endl;
 	}
-	
+
 	fullpath = string(tmp) + PATH_SEPARATOR + name;
 }
 
@@ -110,7 +113,7 @@ driver_dir::filesize(const string &filename) const {
 	if (ret == -1 && errno == ENOENT) {
 		return size_t(-1);
 	}
-	return status.st_size;	
+	return status.st_size;
 }
 
 void
@@ -123,10 +126,10 @@ driver_dir::create_empty_index() {
 	<< "__END__" << endl;
 }
 
-void 
+void
 driver_dir::remove_all() const {
 	string filename;
-	
+
 	struct dirent *entry = NULL;
 	DIR *dir = opendir(base_.c_str());
 	while((entry = readdir(dir)) != NULL) {
@@ -135,77 +138,93 @@ driver_dir::remove_all() const {
 	}
 }
 
-void 
+void
 driver_dir::open(const string &base, int mode) {
 	construct_fullpath(base, base_);
 
 	struct stat status;
 	int ret = stat(base_.c_str(), &status);
-	
-	if (ret == -1 && errno == ENOENT) {		
+
+	if (ret == -1 && errno == ENOENT) {
 		if ((mode & DS_O_CREATE) == 0) {
 			err << "driver_dir::open: Directory '" << base_ << "' not found" << endl;
 		}
-		
+
 		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
 			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
 		}
-		
+
 		create_empty_index();
-		
+
 	} else if (S_ISDIR(status.st_mode) == 0) {
 		err << "driver_dir::open: File '" << base_ << "' is not directory" << endl;
-	} 
+	}
+
+    if (mode & DS_O_SAFE) {
+        file_ = ::open(base_.c_str(), O_RDONLY);
+        if (mode & DS_O_WRITE) {
+            flock(file_, LOCK_EX);
+        } else {
+            flock(file_, LOCK_SH);
+        }
+    } else {
+        file_ = -1;
+    }
 
 	if (mode & DS_O_TRUNC) {
 		remove_all();
 		create_empty_index();
 	}
-	
+
 	mode_ = mode;
 }
 
-void 
-driver_dir::close() {	
+void
+driver_dir::close() {
+    if (file_ != -1) {
+        flock(file_, LOCK_UN);
+        ::close(file_);
+        file_ = -1;
+    }
 	mode_ = 0;
 }
-		
-void 
-driver_dir::write(const string &key, const void *data, size_t len) {	
+
+void
+driver_dir::write(const string &key, const void *data, size_t len) {
 	if ((mode_ & DS_O_WRITE) == 0) {
 		err << "driver_dir::write: Not openned for write." << endl;
 	}
-	
+
 	string filename;
 	construct_filename(key + ".dat", filename);
 
 	int mask = O_WRONLY|O_CREAT|O_APPEND;
 	int fd = ::open(filename.c_str(), mask, FILE_MODE);
-	
+
 	if (fd == -1) {
 		err << "driver_dir::write: Cannot open file '" << filename << "'for write." << endl;
 	}
-	
-	
+
+
 	ssize_t wr = ::write(fd, data, len);
 	::close(fd);
-	
+
 	if (wr != len) {
 		err << "Error during write file '" << filename << "'." << endl;
 	}
 }
 
-void 
-driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {	
+void
+driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {
 	if ((mode_ & DS_O_READ) == 0) {
 		err << "driver_dir::read: Not openned for read." << endl;
 	}
-	
+
 	string filename;
 	construct_filename(key + ".dat", filename);
-	
+
 	int fd = ::open(filename.c_str(), O_RDONLY);
-	
+
 	if (fd == -1) {
 		err << "Cannot open file '" << filename << "'for read." << endl;
 	}
@@ -213,56 +232,56 @@ driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {
 	::lseek(fd, offs, SEEK_SET);
 	ssize_t rd = ::read(fd, dst, len);
 	::close(fd);
-	
+
 	if (rd != len) {
 		err << "Error during read file '" << filename << "'." << endl;
-	}	
+	}
 }
 
-void 
-driver_dir::read(const string &key, const void *indexes, int idx_siz, size_t num, void *dst1, size_t el_siz) {	
+void
+driver_dir::read(const string &key, const void *indexes, int idx_siz, size_t num, void *dst1, size_t el_siz) {
 	if ((mode_ & DS_O_READ) == 0) {
 		err << "driver_dir::read: Not openned for read." << endl;
 	}
-	
+
 	char * dst = static_cast<char *>(dst1);
 	string filename;
 	construct_filename(key + ".dat", filename);
-	
+
 	int fd = ::open(filename.c_str(), O_RDONLY);
-	
+
 	if (fd == -1) {
 		err << "Cannot open file '" << filename << "' for read." << endl;
 	}
 
 	accessor_t acc = get_accessor(idx_siz);
-	
+
 	for (int k = 0; k < num; ++ k) {
 		::lseek(fd, acc(indexes, k) * el_siz, SEEK_SET);
 		if (::read(fd, dst, el_siz) != el_siz) {
 			::close(fd);
 			err << "Error during read file '" << filename << "'." << endl;
 		}
-		
+
 		dst += el_siz;
 	}
 	::close(fd);
 }
 
-void 
+void
 driver_dir::truncate(const string &key, size_t sz) {
 	string filename;
 	construct_filename(key + ".dat", filename);
-	
+
 	::truncate(filename.c_str(), sz);
 }
 
-void 
+void
 driver_dir::remove(const column &col) {
-	
+
 }
 
-void 
+void
 driver_dir::write_dictionary(const lookup &l) {
 	string filename;
 	construct_filename(l.key() + ".dic", filename);
@@ -272,9 +291,9 @@ driver_dir::write_dictionary(const lookup &l) {
 	void **data = new void *[count];
 	size_t *len  = new size_t[count];
 	l.get(data, len, el_siz);
-	
+
 	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT, FILE_MODE);
-	
+
 	if (fd == -1) {
 		err << "driver_dir::write_dictionary: Cannot open file '" << filename << "' for write." << endl;
 	}
@@ -288,30 +307,30 @@ driver_dir::write_dictionary(const lookup &l) {
 			err << "Error during write file '" << filename << "'." << endl;
 		}
 	}
-	
+
 	::close(fd);
-	
+
 	delete [] len;
 	delete [] data;
 }
 
-void 
+void
 driver_dir::write_index(const storage &stor) {
 	string index;
 	construct_filename("index", index);
-	
+
 	ofstream out(index.c_str());
 	if (!out) {
 		err << "driver_dir::write_index: Can't open file '" << index << "' for write." << endl;
 	}
-	
+
 	out << "__DS__"    << endl
 	    << "version: " << MAJOR_VERSION << "." << MINOR_VERSION << endl;
-		
+
 	for (size_t k = 0; k < stor.cols(); ++ k)	{
 		out << "column: " << stor[k].name() << endl;
 	}
-	
+
     vector<string> keys;
     stor.tags().keys(keys);
     for (size_t k = 0; k < keys.size(); ++ k) {
@@ -320,16 +339,16 @@ driver_dir::write_index(const storage &stor) {
 	out << "__END__" << endl;
 }
 
-void 
+void
 driver_dir::write_index(const column &col) {
 	string index;
 	construct_filename(col.name() + ".idx", index);
-	
+
 	ofstream out(index.c_str());
 	if (!out) {
 		err << "driver_dir::write_index: Can't open file '" << index << "' for write." << endl;
 	}
-	
+
 	out << "__DS__"   << endl
 	    << "name: "   << col.name()    << endl
 		<< "type: "   << col.type()    << endl;
@@ -337,7 +356,7 @@ driver_dir::write_index(const column &col) {
 	if (is_str(col.type())) {
 		out << "dict: "   << col.ext_type() << endl;
 	}
-		
+
 	out << "endian: " << col.endian()  << endl
         << "length: " << col.length()  << endl
         << "width:  " << col.width()   << endl;
@@ -351,40 +370,40 @@ driver_dir::write_index(const column &col) {
     out << "__END__" << endl;
 }
 
-void 
+void
 driver_dir::read_dictionary(lookup &l) {
 	string filename;
 	construct_filename(l.key() + ".dic", filename);
-	
+
 	ssize_t sz = filesize(filename);
 
 	int fd = ::open(filename.c_str(), O_RDONLY);
-	
+
 	if (fd == -1) {
 		err << "driver_dir::read_dictionary: Cannot open file '" << filename << "' for read." << endl;
 	}
-	
+
 	char *data = new char[sz];
-	
+
 	int rd = ::read(fd, data, sz);
 	::close(fd);
 
 	if (rd == sz) {
 		l.set(data, rd);
     }
-	delete [] data;	
-	
+	delete [] data;
+
 	if (rd != sz) {
 		err << "driver_dir::read_dictionary: error during read file '" << filename << "'." << endl;
 	}
-	
+
 }
 
-void 
+void
 driver_dir::read_index(storage &stor) {
 	string index;
 	construct_filename("index", index);
-	
+
 	ifstream in(index.c_str());
 	if (!in) {
 		err << "driver_dir::read_index: Can't open file '" << index << "' for read." << endl;
@@ -395,13 +414,13 @@ driver_dir::read_index(storage &stor) {
 	read_field(in, "__DS__",   (char *)NULL);
 	read_field(in, "version:", &major);
 	in >> dot >> minor;
-	
+
 	if (major > MAJOR_VERSION || (major == MAJOR_VERSION && minor > MINOR_VERSION)) {
-		err << "driver_dir::read_index: cannot read version higher then " 
+		err << "driver_dir::read_index: cannot read version higher then "
 		    << MAJOR_VERSION << "." << MINOR_VERSION
 			<< " but found " << major << "." << minor << endl;
 	}
-	
+
 	string col_magic, col_val;
 	while( true ) {
 		in >> col_magic;
@@ -428,21 +447,21 @@ driver_dir::read_index(storage &stor) {
 	}
 }
 
-void 
+void
 driver_dir::read_index(column &col) {
 	string index;
 	construct_filename(col.name() + ".idx", index);
-	
+
 	ifstream in(index.c_str());
 	if (!in) {
 		err << "driver_dir::read_index: Can't open file '" << index << "' for read." << endl;
 	}
-	
+
 	string name;
 	size_t length;
 	endian_t endian;
 	type_t int_type, ext_type;
-	
+
 	read_field(in, "__DS__",  (char *)NULL);
 	read_field(in, "name:",   &name);
 	read_field(in, "type:",   &int_type);
@@ -473,7 +492,7 @@ driver_dir::read_index(column &col) {
 	if (name != col.name()) {
 		warn << "driver_dir::read_index: column '" << col.name() << "' had different name '" << name << "'" << endl;
 	}
-	
+
     col.init( int_type, ext_type, col_width, length, endian);
 }
 

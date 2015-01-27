@@ -22,6 +22,7 @@ namespace csv2ds {
   };
 
   struct options {
+    bool safe;
     int col_limit;
     int guess_rows;
     bool guess_tight;

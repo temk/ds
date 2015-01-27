@@ -65,6 +65,7 @@ csv2ds::usage(ostream &out, const string &prog)  {
       //<< TAB << TAB << "-w<name> <number>"  << TAB << "set width for column" << endl
       //<< TAB << TAB << "-w<number> <number>"  << TAB << "set width for column" << endl
       << TAB << TAB << TAB << "For '-g' options, the type will choosen betwenn string or float64. If '-G' specified, then more tightly type guessing" << endl
+      << TAB << TAB << "-S "  << TAB << "safe mode" << endl
       << TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
       << endl
       << TAB << "Valid types are bool, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32, float64, str8, str16, str32. " << endl
@@ -80,6 +81,7 @@ csv2ds::usage(ostream &out, const string &prog)  {
 
 int
 csv2ds::parse_params(int argc, char **argv, options &opt) {
+  opt.safe = false;
   opt.delim = ',';
   opt.quote = '\0';
   opt.head  = false;
@@ -148,6 +150,10 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
         opt.delim = param[2];
       }
       continue;
+    }
+
+    if (param[1] == 'S') {
+        opt.safe = true;
     }
 
     if (param[1] == 'q') {
