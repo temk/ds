@@ -5,7 +5,7 @@ import org.temk.ds.DataStorage;
 import org.temk.ds.Type;
 
 public class Main {
-    public static void main(String [] args) {
+    public static void main1(String [] args) {
         try {
         DataStorage ds = new DataStorage("/tmp/ds");
         Map<String, String> m1 = ds.getMeta();
@@ -18,7 +18,7 @@ public class Main {
             ex.printStackTrace();
         }
     }
-    public static void main1(String [] args) {
+    public static void main(String [] args) {
         
         DataStorage ds = new DataStorage();
         double [] dc = new double [] {1,2,3,4,5,6,7,8,9,0};

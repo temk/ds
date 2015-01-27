@@ -37,6 +37,7 @@ inline ostream &operator<<(ostream &out, const int *s) {
 }
 
 struct options {
+  bool safe;
   bool names;
   bool force;
   string delim;
@@ -68,12 +69,12 @@ printable_column ::printable_column (column &col, const string & delim, const st
   : col_(col), delim_(delim), delim_last_(delim_last), quote_(quote) {
 }
 
-printable_column ::~printable_column () {	
+printable_column ::~printable_column () {
 }
 
 
 template<typename T>
-class printable_column_ex : public printable_column { 
+class printable_column_ex : public printable_column {
 private:
   T *data_;
 
@@ -105,7 +106,7 @@ public:
 };
 
 
-printable_column * 
+printable_column *
 create(column &col, const string &delim, const string &delim_last, const string &quote) {
   switch(col.type()) {
     case DS_T_BOOL:
@@ -168,6 +169,7 @@ void usage(ostream &out, const string &prog)  {
       << TAB << TAB << "-d<delimeter>" << TAB << "Use delimeter <delimeter>. Default is ','" << endl
       << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is empty string " << endl
       << TAB << TAB << "-n "  << TAB << "Write column names as a first line" << endl
+      << TAB << TAB << "-S "  << TAB << "safe mode" << endl
       << TAB << TAB << "-h "  << TAB << "Prints this help and exit" << endl
       << endl << endl
       << TAB << "Example: ds2csv -q\\' -n /tmp/storage -" << endl << endl;
@@ -175,6 +177,7 @@ void usage(ostream &out, const string &prog)  {
 
 int
 parse_params(int argc, char **argv, options &opt) {
+  opt.safe = false;
   opt.delim = ',';
   opt.quote = "";
   opt.names = false;
@@ -209,6 +212,8 @@ parse_params(int argc, char **argv, options &opt) {
           opt.quote = param.substr(2);
         } else if (param[1] == 'n') {
           opt.names = true;
+        } else if (param[1] == 'S') {
+          opt.safe = true;
         } else if (param[1] == 'h') {
           usage(cout, argv[0]);
           return 1;
@@ -291,7 +296,7 @@ main(int argc, char **argv) {
     }
 
   try {
-    storage stor(opt.input, DS_O_READ);
+    storage stor(opt.input, DS_O_READ | (opt.safe ? DS_O_SAFE : 0));
     if (opt.output == "-") {
         convert(stor, cout, opt);
       } else {

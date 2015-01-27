@@ -18,8 +18,8 @@ set(EXT_HEADER include/ds/meta.h
 include_directories(include)
 
 if (DS_BUILD_CORE)
-	add_library(${LIB_NAME}  SHARED ${SOURCES})
-	add_library(${LIB_NAME}s STATIC ${SOURCES})
+	add_library(${LIB_NAME}  SHARED ${SOURCES} ${HEADERS})
+	add_library(${LIB_NAME}s STATIC ${SOURCES} ${HEADERS})
 
 	install(TARGETS ${LIB_NAME}  DESTINATION lib)
 	install(TARGETS ${LIB_NAME}s DESTINATION lib)
