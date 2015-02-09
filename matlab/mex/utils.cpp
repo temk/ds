@@ -135,7 +135,15 @@ ds::str_to_mode(const char *s) {
 			case 't':
 				mode |= DS_O_TRUNC;
 				break;
+
+			case 's':
+				mode |= DS_O_SAFE;
+				break;		
 				
+			case 'u':
+				mode |= DS_O_UNIQUE;
+				break;
+							
 			default:
 				throw runtime_error("unexcepted storage open mode");
 		}
