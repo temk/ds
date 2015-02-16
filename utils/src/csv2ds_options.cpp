@@ -154,6 +154,7 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
 
     if (param[1] == 'S') {
         opt.safe = true;
+        continue;
     }
 
     if (param[1] == 'q') {

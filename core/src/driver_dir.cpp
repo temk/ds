@@ -162,10 +162,14 @@ driver_dir::open(const string &base, int mode) {
 
     if (mode & DS_O_SAFE) {
         file_ = ::open(base_.c_str(), O_RDONLY);
+        int err = 0;
         if (mode & DS_O_WRITE) {
-            flock(file_, LOCK_EX);
+            err = flock(file_, LOCK_EX);
         } else {
-            flock(file_, LOCK_SH);
+            err = flock(file_, LOCK_SH);
+        }
+        if (err != 0) {
+            perror("Fail to lock file");
         }
     } else {
         file_ = -1;
@@ -421,8 +425,8 @@ driver_dir::read_index(storage &stor) {
 			<< " but found " << major << "." << minor << endl;
 	}
 
-	string col_magic, col_val;
 	while( true ) {
+        string col_magic, col_val;
 		in >> col_magic;
 		if (col_magic == "column:") {
 			in >> col_val;
@@ -439,7 +443,7 @@ driver_dir::read_index(storage &stor) {
             parse_meta(line, key, val);
             stor.tags().set(key, val);
         } else if (col_magic != "__END__") {
-            warn << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
+            err << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
 			break;
 		} else {
 			break;
