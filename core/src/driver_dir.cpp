@@ -13,7 +13,6 @@
 #include <stdlib.h>
 
 #include <sys/file.h>
-
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -141,9 +140,9 @@ driver_dir::remove_all() const {
 void
 driver_dir::open(const string &base, int mode) {
 	construct_fullpath(base, base_);
-
 	struct stat status;
 	int ret = stat(base_.c_str(), &status);
+    bool need_index = false;
 
 	if (ret == -1 && errno == ENOENT) {
 		if ((mode & DS_O_CREATE) == 0) {
@@ -154,25 +153,46 @@ driver_dir::open(const string &base, int mode) {
 			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
 		}
 
-		create_empty_index();
-
+		need_index  = true;
 	} else if (S_ISDIR(status.st_mode) == 0) {
 		err << "driver_dir::open: File '" << base_ << "' is not directory" << endl;
 	}
 
     if (mode & DS_O_SAFE) {
-        file_ = ::open(base_.c_str(), O_RDONLY);
+        string index_ = base_ + "/index";
+        file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT);
         int err = 0;
         if (mode & DS_O_WRITE) {
+            printf("lock LOCK_EX on %s\n", index_.c_str());
             err = flock(file_, LOCK_EX);
         } else {
+            printf("lock LOCK_SH on %s\n", index_.c_str());
             err = flock(file_, LOCK_SH);
         }
         if (err != 0) {
             perror("Fail to lock file");
         }
+        else
+        {
+            printf("Success file lock\n");
+        }
+
+        struct stat s;
+        if (fstat(file_, &s) != 0)
+        {
+            perror("Fail to stat index file");
+        }
+
+        if (s.st_size == 0)
+        {
+            create_empty_index();
+        }
+
     } else {
         file_ = -1;
+        if (need_index) {
+            create_empty_index();
+        }
     }
 
 	if (mode & DS_O_TRUNC) {
