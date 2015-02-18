@@ -163,10 +163,10 @@ driver_dir::open(const string &base, int mode) {
         file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT);
         int err = 0;
         if (mode & DS_O_WRITE) {
-            printf("lock LOCK_EX on %s\n", index_.c_str());
+//            printf("lock LOCK_EX on %s\n", index_.c_str());
             err = flock(file_, LOCK_EX);
         } else {
-            printf("lock LOCK_SH on %s\n", index_.c_str());
+//            printf("lock LOCK_SH on %s\n", index_.c_str());
             err = flock(file_, LOCK_SH);
         }
         if (err != 0) {
@@ -174,7 +174,7 @@ driver_dir::open(const string &base, int mode) {
         }
         else
         {
-            printf("Success file lock\n");
+//            printf("Success file lock\n");
         }
 
         struct stat s;
