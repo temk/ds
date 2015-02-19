@@ -151,6 +151,8 @@ driver_dir::open(const string &base, int mode) {
 
 		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG) == -1) {
 			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
+		} else {
+		    //printf("created %s\n", base_.c_str());
 		}
 
 		need_index  = true;
@@ -161,6 +163,9 @@ driver_dir::open(const string &base, int mode) {
     if (mode & DS_O_SAFE) {
         string index_ = base_ + "/index";
         file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+        if (file_ < 0) {
+            perror("Fail to open index file");
+        }
         int err = 0;
         if (mode & DS_O_WRITE) {
 //            printf("lock LOCK_EX on %s\n", index_.c_str());
