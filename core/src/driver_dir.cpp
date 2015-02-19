@@ -143,11 +143,11 @@ driver_dir::open(const string &base, int mode) {
     bool no_index = false;
     if (mode & DS_O_CREATE)   {
         if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG)) {
-            printf("dir exists\n");
-            perror("mkdir: just for debug");
+//            printf("dir exists\n");
+//            perror("mkdir: just for debug");
         } else {
             no_index = true;
-            printf("dir created\n");
+//            printf("dir created\n");
         }
     }
 
@@ -162,7 +162,7 @@ driver_dir::open(const string &base, int mode) {
     if (file_ < 0) {
         perror("can't open index file");
     } else {
-        printf("index file opened\n");
+//        printf("index file opened\n");
     }
 
 
@@ -171,14 +171,14 @@ driver_dir::open(const string &base, int mode) {
         if (flock(file_, lm)) {
             perror("Fail to lock file");
         } else {
-            printf("file locked\n");
+//            printf("file locked\n");
         }
     }
 
     if (no_index) {
-        printf("create empty index\n");
+//        printf("create empty index\n");
         create_empty_index();
-        printf("empty index created\n");
+//        printf("empty index created\n");
     }
 
 	if (mode & DS_O_TRUNC) {
