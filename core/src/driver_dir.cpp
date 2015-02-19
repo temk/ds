@@ -136,77 +136,49 @@ driver_dir::remove_all() const {
 		::remove(filename.c_str());
 	}
 }
-
 void
 driver_dir::open(const string &base, int mode) {
 	construct_fullpath(base, base_);
-	struct stat status;
-	int ret = stat(base_.c_str(), &status);
-    bool need_index = false;
 
-	if (ret == -1 && errno == ENOENT) {
-		if ((mode & DS_O_CREATE) == 0) {
-			err << "driver_dir::open: Directory '" << base_ << "' not found" << endl;
-		}
+    bool no_index = false;
+    if (mode & DS_O_CREATE)   {
+        if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG)) {
+            printf("dir exists\n");
+            perror("mkdir: just for debug");
+        } else {
+            no_index = true;
+            printf("dir created\n");
+        }
+    }
 
-		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG) == -1) {
-			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
-		} else {
-		    //printf("created %s\n", base_.c_str());
-		}
+    int dir = ::open(base_.c_str(), O_RDONLY|O_DIRECTORY);
+    if (dir < 0) {
+        perror("can't open ds' directory");
+    }
+    ::close(dir);
 
-		need_index  = true;
-	} else if (S_ISDIR(status.st_mode) == 0) {
-		err << "driver_dir::open: File '" << base_ << "' is not directory" << endl;
-	}
+    string index = base_ + "/index";
+    int file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, 0660);
+    if (file_ < 0) {
+        perror("can't open index file");
+    } else {
+        printf("index file opened\n");
+    }
+
 
     if (mode & DS_O_SAFE) {
-        string index_ = base_ + "/index";
-
-        /** dirty hack to flush NFS' cache: open and close directory **/
-        int dir = ::open(base_.c_str(), O_RDONLY);
-        if (dir < 0) {
-            perror("Fail to open parent directory");
-        } else {
-            ::close(dir);
-        }
-
-        file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-        if (file_ < 0) {
-            perror("Fail to open index file");
-        }
-        int err = 0;
-        if (mode & DS_O_WRITE) {
-//            printf("lock LOCK_EX on %s\n", index_.c_str());
-            err = flock(file_, LOCK_EX);
-        } else {
-//            printf("lock LOCK_SH on %s\n", index_.c_str());
-            err = flock(file_, LOCK_SH);
-        }
-        if (err != 0) {
+        int lm = (mode & DS_O_WRITE) ? LOCK_EX : LOCK_SH;
+        if (flock(file_, lm)) {
             perror("Fail to lock file");
+        } else {
+            printf("file locked\n");
         }
-        else
-        {
-//            printf("Success file lock\n");
-        }
+    }
 
-        struct stat s;
-        if (fstat(file_, &s) != 0)
-        {
-            perror("Fail to stat index file");
-        }
-
-        if (s.st_size == 0)
-        {
-            create_empty_index();
-        }
-
-    } else {
-        file_ = -1;
-        if (need_index) {
-            create_empty_index();
-        }
+    if (no_index) {
+        printf("create empty index\n");
+        create_empty_index();
+        printf("empty index created\n");
     }
 
 	if (mode & DS_O_TRUNC) {
@@ -216,6 +188,85 @@ driver_dir::open(const string &base, int mode) {
 
 	mode_ = mode;
 }
+
+//void
+//driver_dir::open(const string &base, int mode) {
+//	construct_fullpath(base, base_);
+//	struct stat status;
+//	int ret = stat(base_.c_str(), &status);
+//    bool need_index = false;
+//
+//	if (ret == -1 && errno == ENOENT) {
+//		if ((mode & DS_O_CREATE) == 0) {
+//			err << "driver_dir::open: Directory '" << base_ << "' not found" << endl;
+//		}
+//
+//		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG) == -1) {
+//			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
+//		} else {
+//		    printf("created %s\n", base_.c_str());
+//		}
+//
+//		need_index  = true;
+//	} else if (S_ISDIR(status.st_mode) == 0) {
+//		err << "driver_dir::open: File '" << base_ << "' is not directory" << endl;
+//	}
+//
+//    if (mode & DS_O_SAFE) {
+//        string index_ = base_ + "/index";
+//
+//        int dir = ::open(base_.c_str(), O_RDONLY);
+//        if (dir < 0) {
+//            perror("Fail to open parent directory");
+//        } else {
+//            ::close(dir);
+//        }
+//
+//        file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+//        if (file_ < 0) {
+//            perror("Fail to open index file");
+//        }
+//        int err = 0;
+//        if (mode & DS_O_WRITE) {
+////            printf("lock LOCK_EX on %s\n", index_.c_str());
+//            err = flock(file_, LOCK_EX);
+//        } else {
+////            printf("lock LOCK_SH on %s\n", index_.c_str());
+//            err = flock(file_, LOCK_SH);
+//        }
+//        if (err != 0) {
+//            perror("Fail to lock file");
+//        }
+//        else
+//        {
+////            printf("Success file lock\n");
+//        }
+//
+//        struct stat s;
+//        if (fstat(file_, &s) != 0)
+//        {
+//            perror("Fail to stat index file");
+//        }
+//
+//        if (s.st_size == 0)
+//        {
+//            create_empty_index();
+//        }
+//
+//    } else {
+//        file_ = -1;
+//        if (need_index) {
+//            create_empty_index();
+//        }
+//    }
+//
+//	if (mode & DS_O_TRUNC) {
+//		remove_all();
+//		create_empty_index();
+//	}
+//
+//	mode_ = mode;
+//}
 
 void
 driver_dir::close() {
