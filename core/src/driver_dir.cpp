@@ -26,7 +26,7 @@ using namespace std;
 #	define PATH_SEPARATOR '/'
 #endif // PATH_SEPARATOR
 
-#define FILE_MODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)
+#define FILE_MODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)
 
 static void
 parse_meta(const string &str, string &key, string &val) {
@@ -149,7 +149,7 @@ driver_dir::open(const string &base, int mode) {
 			err << "driver_dir::open: Directory '" << base_ << "' not found" << endl;
 		}
 
-		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+		if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG) == -1) {
 			err << "driver_dir::open: Cannot create directory '" << base_  << "'." << endl;
 		}
 
@@ -160,7 +160,7 @@ driver_dir::open(const string &base, int mode) {
 
     if (mode & DS_O_SAFE) {
         string index_ = base_ + "/index";
-        file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT);
+        file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
         int err = 0;
         if (mode & DS_O_WRITE) {
 //            printf("lock LOCK_EX on %s\n", index_.c_str());
