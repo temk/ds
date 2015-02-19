@@ -162,6 +162,15 @@ driver_dir::open(const string &base, int mode) {
 
     if (mode & DS_O_SAFE) {
         string index_ = base_ + "/index";
+
+        /** dirty hack to flush NFS' cache: open and close directory **/
+        int dir = ::open(base_.c_str(), O_RDONLY);
+        if (dir < 0) {
+            perror("Fail to open parent directory");
+        } else {
+            ::close(dir);
+        }
+
         file_ = ::open(index_.c_str(), O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
         if (file_ < 0) {
             perror("Fail to open index file");
