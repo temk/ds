@@ -3,6 +3,7 @@
 #include <ds/column.h>
 #include <ds/lookup.h>
 #include <ds/utils.h>
+#include <ds/version.h>
 
 #include <fstream>
 #include <fcntl.h>

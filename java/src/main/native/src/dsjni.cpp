@@ -6,6 +6,7 @@
 #include <ds/lookup.h>
 #include <ds/storage.h>
 #include <ds/column.h>
+#include <ds/version.h>
 
 #include <algorithm>
 
@@ -376,6 +377,12 @@ Java_org_temk_ds_DataStorage_getMeta(JNIEnv *env, jobject self) {
   return result;
 }
 
+JNIEXPORT jstring JNICALL 
+Java_org_temk_ds_DataStorage_getVersion(JNIEnv *env) {
+	char buff[128];
+	sprintf(buff, "%d.%d.%d", MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION);
+	return env ->NewStringUTF(buff);
+}
 
 // ========================================================================================================
 JNIEXPORT void 

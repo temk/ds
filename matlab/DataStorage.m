@@ -269,6 +269,12 @@ classdef DataStorage < handle
         end
     end
     
+    methods(Static = true)
+        function [v] = version() 
+            v = ds_version();
+        end
+    end
+
     methods(Access = private)
         
         function [varargout] = get_parameters(self, defaults, values)

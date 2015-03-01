@@ -14,11 +14,6 @@ namespace ds {
 	class column;
 	class driver;
 
-	/**
-	 * current version
-	**/
-	static const int MAJOR_VERSION = 1;
-	static const int MINOR_VERSION = 1;
 
 	/**
 	 * flags to open storage

@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+#
+
+file=`dirname $0`/core/include/ds/version.h
+
+perl -i -p -e 's/(.*BUILD_VERSION)[[:space:]]+=[[:space:]]+([[:digit:]]+);/"$1 = " . ($2 + 1) . ";"/e' $file            
+
+cat $file
+

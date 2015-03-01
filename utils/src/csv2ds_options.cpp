@@ -1,4 +1,5 @@
 #include <csv2ds.h>
+#include <ds/version.h>
 using namespace ds;
 using namespace csv2ds;
 
@@ -45,7 +46,8 @@ str_to_type(const string &s) {
 
 void
 csv2ds::usage(ostream &out, const string &prog)  {
-  out << "Usage: " << prog << " options* input output" << endl
+  out << "csv2ds version: " << MAJOR_VERSION << '.' << MINOR_VERSION << '.' << BUILD_VERSION << endl
+      << "Usage: " << prog << " options* input output" << endl
       << TAB << "input" << TAB << "valid path to input csv file or '-' for stdin"  << endl
       << TAB << "output" << TAB << "valid path to output data storage"  << endl
       << TAB << "Options:" << endl

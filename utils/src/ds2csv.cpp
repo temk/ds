@@ -8,6 +8,7 @@
 #include <ds/utils.h>
 #include <ds/column.h>
 #include <ds/storage.h>
+#include <ds/version.h>
 
 using namespace ds;
 using namespace std;
@@ -161,7 +162,8 @@ create(column &col, const string &delim, const string &delim_last, const string 
 }
 
 void usage(ostream &out, const string &prog)  {
-  out << "Usage: " << prog << " options* input output" << endl
+  out << "ds2csv; version: " << MAJOR_VERSION << '.' << MINOR_VERSION << '.' << BUILD_VERSION << endl
+      << "Usage: " << prog << " options* input output" << endl
       << TAB << "input" << TAB "valid path to data storage"  << endl
       << TAB << "output" << TAB "valid path to output csv file or '-' for stdout"  << endl
       << TAB << "Options:" << endl

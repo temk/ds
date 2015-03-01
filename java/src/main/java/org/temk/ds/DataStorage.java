@@ -21,7 +21,8 @@ public class DataStorage {
     
     protected native long getColumnByIndex(long index);
     protected native long getColumnByName(String name);
-    
+    public static native String getVersion();
+        
     /**
      * Constructor.
     **/

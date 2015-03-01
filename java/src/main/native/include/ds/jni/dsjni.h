@@ -16,6 +16,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_org_temk_ds_DataStorage_addMeta(JNIEnv *env, jobject self, jstring key, jstring value);
     JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_getMeta(JNIEnv *env, jobject self);
 
+    JNIEXPORT jstring JNICALL Java_org_temk_ds_DataStorage_getVersion(JNIEnv *env);    
+
     JNIEXPORT void JNICALL Java_org_temk_ds_Column_remove(JNIEnv *env, jobject self); 
     JNIEXPORT void JNICALL Java_org_temk_ds_Column_flush(JNIEnv *env, jobject self); 
 
