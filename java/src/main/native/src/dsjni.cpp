@@ -156,6 +156,14 @@ static int str_to_mode(const char *str) {
 		case 't':  
 			mode |= DS_O_TRUNC; 
 			break;
+
+		case 's':  
+			mode |= DS_O_SAFE; 
+			break;
+
+		case 'u':  
+			mode |= DS_O_UNIQUE; 
+			break;
 		} 
 	}
 	
