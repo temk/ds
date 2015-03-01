@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -120,7 +121,7 @@ void
 driver_dir::create_empty_index() {
 	string index;
 	construct_filename("index", index);
-	ofstream out(index.c_str());
+	ofstream out(index.c_str(),  std::ofstream::out |  std::ofstream::trunc);
 	out << "__DS__"    << endl
 	<< "version: " << MAJOR_VERSION << "." << MINOR_VERSION << endl
 	<< "__END__" << endl;
@@ -133,6 +134,9 @@ driver_dir::remove_all() const {
 	struct dirent *entry = NULL;
 	DIR *dir = opendir(base_.c_str());
 	while((entry = readdir(dir)) != NULL) {
+	    if (!strcmp("index", entry ->d_name)) {
+	        continue;
+	    }
 		construct_filename(entry ->d_name, filename);
 		::remove(filename.c_str());
 	}
@@ -172,7 +176,7 @@ driver_dir::open(const string &base, int mode) {
         if (flock(file_, lm)) {
             perror("Fail to lock file");
         } else {
-//            printf("file locked\n");
+            //printf("file locked\n");
         }
     }
 
@@ -275,6 +279,7 @@ driver_dir::close() {
         flock(file_, LOCK_UN);
         ::close(file_);
         file_ = -1;
+        //printf("file unlocked\n");
     }
 	mode_ = 0;
 }

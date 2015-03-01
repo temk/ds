@@ -8,7 +8,7 @@ namespace ds {
 	**/
 	static const int MAJOR_VERSION = 1;
 	static const int MINOR_VERSION = 1;
-	static const int BUILD_VERSION = 2;
+	static const int BUILD_VERSION = 3;
 
 }
 
