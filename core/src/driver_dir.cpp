@@ -158,7 +158,7 @@ driver_dir::open(const string &base, int mode) {
     ::close(dir);
 
     string index = base_ + "/index";
-    int file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, 0660);
+    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, 0660);
     if (file_ < 0) {
         perror("can't open index file");
     } else {
