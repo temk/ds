@@ -137,7 +137,7 @@ public class Column {
      * @return data that was read
     **/
     public boolean [] read(long offset, boolean [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -223,7 +223,7 @@ public class Column {
      * @return data that was read
     **/
     public byte [] read(long offset, byte [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -309,7 +309,7 @@ public class Column {
      * @return data that was read
     **/
     public short [] read(long offset, short [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -395,7 +395,7 @@ public class Column {
      * @return data that was read
     **/
     public int [] read(long offset, int [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -481,7 +481,7 @@ public class Column {
      * @return data that was read
     **/
     public long [] read(long offset, long [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -567,7 +567,7 @@ public class Column {
      * @return data that was read
     **/
     public float [] read(long offset, float [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -653,7 +653,7 @@ public class Column {
      * @return data that was read
     **/
     public double [] read(long offset, double [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
@@ -739,7 +739,7 @@ public class Column {
      * @return data that was read
     **/
     public String [] read(long offset, String [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**

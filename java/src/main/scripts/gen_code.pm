@@ -78,7 +78,7 @@ print $fd <<__END_OF_MARK__;
      * \@return data that was read
     **/
     public $type [] read(long offset, $type [] data) {
-        return read(offset, (int)(getLength() - offset + 1), data);
+        return read(offset, (int)(getLength() - offset), data);
     }
 
     /**
