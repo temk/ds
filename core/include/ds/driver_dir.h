@@ -9,6 +9,7 @@ namespace ds {
 	class driver_dir : public driver {
 	private:
 		int mode_;
+		int mask_;
 	    int file_;
 		string base_;
 

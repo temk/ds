@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libgen.h>
+
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -28,7 +30,7 @@ using namespace std;
 #	define PATH_SEPARATOR '/'
 #endif // PATH_SEPARATOR
 
-#define FILE_MODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)
+#define FILE_MASK (mask_ & 0666)
 
 static void
 parse_meta(const string &str, string &key, string &val) {
@@ -141,13 +143,28 @@ driver_dir::remove_all() const {
 		::remove(filename.c_str());
 	}
 }
+
+static void parent_dir(const string &path, string &parent)
+{
+    char *buff = (char *)alloca(path.length() + 1);
+    strcpy(buff, path.c_str());
+    parent = string(dirname(buff));
+}
+
 void
 driver_dir::open(const string &base, int mode) {
 	construct_fullpath(base, base_);
 
+    string parent;
+    parent_dir(base, parent);
+
+    struct stat s;
+    ::stat(parent.c_str(), &s);
+    mask_ = s.st_mode;
+
     bool no_index = false;
     if (mode & DS_O_CREATE)   {
-        if (mkdir(base_.c_str(), S_IRWXU | S_IRWXG)) {
+        if (mkdir(base_.c_str(), mask_)) {
 //            printf("dir exists\n");
 //            perror("mkdir: just for debug");
         } else {
@@ -156,14 +173,14 @@ driver_dir::open(const string &base, int mode) {
         }
     }
 
-    int dir = ::open(base_.c_str(), O_RDONLY|O_DIRECTORY);
+    int dir = ::open(base_.c_str(), O_RDONLY|O_DIRECTORY, FILE_MASK);
     if (dir < 0) {
         perror("can't open ds' directory");
     }
     ::close(dir);
 
     string index = base_ + "/index";
-    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT);
+    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, FILE_MASK);
     if (file_ < 0) {
         perror("can't open index file");
     } else {
@@ -294,7 +311,7 @@ driver_dir::write(const string &key, const void *data, size_t len) {
 	construct_filename(key + ".dat", filename);
 
 	int mask = O_WRONLY|O_CREAT|O_APPEND;
-	int fd = ::open(filename.c_str(), mask);
+	int fd = ::open(filename.c_str(), mask, FILE_MASK);
 
 	if (fd == -1) {
 		err << "driver_dir::write: Cannot open file '" << filename << "'for write." << endl;
@@ -387,7 +404,7 @@ driver_dir::write_dictionary(const lookup &l) {
 	size_t *len  = new size_t[count];
 	l.get(data, len, el_siz);
 
-	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT);
+	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT, FILE_MASK);
 
 	if (fd == -1) {
 		err << "driver_dir::write_dictionary: Cannot open file '" << filename << "' for write." << endl;
