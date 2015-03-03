@@ -163,7 +163,7 @@ driver_dir::open(const string &base, int mode) {
     ::close(dir);
 
     string index = base_ + "/index";
-    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, 0660);
+    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT);
     if (file_ < 0) {
         perror("can't open index file");
     } else {
@@ -294,7 +294,7 @@ driver_dir::write(const string &key, const void *data, size_t len) {
 	construct_filename(key + ".dat", filename);
 
 	int mask = O_WRONLY|O_CREAT|O_APPEND;
-	int fd = ::open(filename.c_str(), mask, FILE_MODE);
+	int fd = ::open(filename.c_str(), mask);
 
 	if (fd == -1) {
 		err << "driver_dir::write: Cannot open file '" << filename << "'for write." << endl;
@@ -387,7 +387,7 @@ driver_dir::write_dictionary(const lookup &l) {
 	size_t *len  = new size_t[count];
 	l.get(data, len, el_siz);
 
-	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT, FILE_MODE);
+	int fd = ::open(filename.c_str(), O_WRONLY|O_TRUNC|O_CREAT);
 
 	if (fd == -1) {
 		err << "driver_dir::write_dictionary: Cannot open file '" << filename << "' for write." << endl;
