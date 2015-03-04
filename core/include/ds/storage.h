@@ -24,7 +24,7 @@ namespace ds {
 	static const int DS_O_CREATE  = 0x08;
 	static const int DS_O_SAFE    = 0x10;
 	static const int DS_O_UNIQUE  = 0x20;
-	static const int DS_O_DEFAULT = DS_O_READ | DS_O_WRITE | DS_O_CREATE;
+	static const int DS_O_DEFAULT = DS_O_READ | DS_O_WRITE | DS_O_CREATE | DS_O_SAFE;
 
 	/**
 	 * default buffer size

@@ -1,7 +1,7 @@
 classdef DataStorage < handle
     %classdef DataStorage
     %Example:
-    %   ds = DataStorage('/tmp/storage'); % open dataset with mode = 'rwc'
+    %   ds = DataStorage('/tmp/storage'); % open dataset with mode = 'rwcs'
     %
     %   ds.add('uint32',  'Name', 'A');   % add column 'A'
     %   ds.add('double', 'Name', 'B');    % add column 'B'
@@ -33,7 +33,7 @@ classdef DataStorage < handle
         %function [self] = DataStorage(path, varargin)
         % Construct new data storage object
         % Parameters:
-        %   Mode  - open mode. default is 'rwc', possible values are
+        %   Mode  - open mode. default is 'rwcs', possible values are
         %           following:
         %               r - read
         %               w - write
@@ -49,7 +49,7 @@ classdef DataStorage < handle
             p = mfilename('fullpath');
             addpath([ p(1:end - numel(c)) 'mex']);            
             
-            [mode, buff_siz] = get_parameters(self, {'Mode', 'rwc', 'Buffer', 1024}, varargin);
+            [mode, buff_siz] = get_parameters(self, {'Mode', 'rwcs', 'Buffer', 1024}, varargin);
             self.handle = ds_open(path, mode, uint64(buff_siz));
             self.column = ds_info(self.handle);
         end

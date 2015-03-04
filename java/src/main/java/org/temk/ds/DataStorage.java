@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DataStorage {
+    public static final String DEFAULT_MODE = "rwcs";
     static {
         load_native();
     }
@@ -43,7 +44,7 @@ public class DataStorage {
      * Constructor. Opens storage. see @open
     **/
     public DataStorage(String path) {
-        open(path, "rwc", DEFAULT_BUFF_SIZ);
+        open(path, DEFAULT_MODE, DEFAULT_BUFF_SIZ);
     }
     
     /**
@@ -61,11 +62,11 @@ public class DataStorage {
     public native void open(String path, String mode, long buffSiz);
     
     /**
-     * Open data storage with mode = "rwc" and buffSiz = 1024
+     * Open data storage with mode = "rwcs" and buffSiz = 1024
      * @param path - path to storage
     **/
     public  void open(String path) {
-        open(path, "rwc", DEFAULT_BUFF_SIZ);
+        open(path, DEFAULT_MODE, DEFAULT_BUFF_SIZ);
     }
     
     /**
