@@ -551,7 +551,9 @@ driver_dir::read_index(storage &stor) {
             parse_meta(line, key, val);
             stor.tags().set(key, val);
         } else if (col_magic != "__END__") {
-            err << "driver_dir::read_index: expected 'column:', but found '" << col_magic << "'. Abort." << endl;
+            err << "driver_dir::read_index("
+            	<< index
+            	<< "): expected 'column:', but found '" << col_magic << "'. Abort." << endl;
 			break;
 		} else {
 			break;
