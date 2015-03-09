@@ -199,6 +199,7 @@ storage::pop(column *col) {
 	col_by_index_.erase(col_by_index_.begin() + index_of(col));
 	col_by_name_.erase(col ->name());
 
+    -- col_num_;
     driver_ ->write_index(*this); // partial flush
 }
 
