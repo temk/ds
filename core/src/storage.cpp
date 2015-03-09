@@ -60,13 +60,28 @@ storage::open(const string &path, int mode, size_t buff_siz) {
 		d ->info.set(info.get());
 		d ->open(path, mode);
 	} catch(const runtime_error &ex) {
-		delete d;
+	    try{
+            d ->close();
+            delete d;
+	    } catch( ... ) {
+	    }
+
 		throw ex;
 	}
 
     mode_ = mode;
 	driver_ = d;
-	driver_ ->read_index(*this);
+
+	try {
+        driver_ ->read_index(*this);
+	} catch(const exception &ex) {
+	    try {
+	        close();
+	    } catch( ... ) {
+	    }
+
+	    throw ex;
+	}
 }
 
 void
