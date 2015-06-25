@@ -50,7 +50,13 @@ classdef DataStorage < handle
             addpath([ p(1:end - numel(c)) 'mex']);            
             
             [mode, buff_siz] = get_parameters(self, {'Mode', 'rwcs', 'Buffer', 1024}, varargin);
-            self.handle = ds_open(path, mode, uint64(buff_siz));
+            self.handle = ds_open(path, mode, uint64(buff_siz));            
+            try
+                self.handle = ds_open(path, mode, uint64(buff_siz));
+            catch ex 
+                warning('ds_open threw exception. retry...')
+                self.handle = ds_open(path, mode, uint64(buff_siz));
+            end
             self.column = ds_info(self.handle);
         end
 
