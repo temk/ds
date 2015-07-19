@@ -156,6 +156,9 @@ storage::column_at(const string &name) {
 
 column &
 storage::add(type_t type, const string &name,  size_t width, endian_t endian, ssize_t index) {
+	if (width < 1) {
+		err << "storage::add: new column: width < 1 is illigal" << endl;
+	}
 	string var = find_free_name(name, col_by_name_, (mode_ & DS_O_UNIQUE) != 0);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
@@ -170,6 +173,9 @@ storage::add(type_t type, const string &name,  size_t width, endian_t endian, ss
 
 column &
 storage::add(type_t type, type_t dict, const string &name,  size_t width, endian_t endian, ssize_t index) {
+	if (width < 1) {
+		err << "storage::add: new column: width < 1 is illigal" << endl;
+	}
 	string var = find_free_name(name, col_by_name_, (mode_ & DS_O_UNIQUE) != 0);
 	if (var != name) {
 		warn << "storage::add: new column " << name << " got name " << var << endl;
