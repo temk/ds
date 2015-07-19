@@ -48,7 +48,7 @@ driver_dir::read_field(istream &in, const string &magic, T *val) {
 	string temp;
 	in >> temp;
 	if (temp != magic) {
-		err << "driver_dir::read_field: malformed index: expected " << magic << " but found " << temp << endl;
+		err << "driver_dir::read_field:" << base_ << ": malformed index: expected " << magic << " but found " << temp << endl;
 	}
 
 	if (val) {
@@ -304,7 +304,7 @@ driver_dir::close() {
 void
 driver_dir::write(const string &key, const void *data, size_t len) {
 	if ((mode_ & DS_O_WRITE) == 0) {
-		err << "driver_dir::write: Not openned for write." << endl;
+		err << "driver_dir::write: " << base_ << ": Not openned for write." << endl;
 	}
 
 	string filename;
@@ -314,7 +314,7 @@ driver_dir::write(const string &key, const void *data, size_t len) {
 	int fd = ::open(filename.c_str(), mask, FILE_MASK);
 
 	if (fd == -1) {
-		err << "driver_dir::write: Cannot open file '" << filename << "'for write." << endl;
+		err << "driver_dir::write: " << base_ << ": Cannot open file '" << filename << "'for write." << endl;
 	}
 
 
@@ -528,7 +528,7 @@ driver_dir::read_index(storage &stor) {
 	in >> dot >> minor;
 
 	if (major > MAJOR_VERSION || (major == MAJOR_VERSION && minor > MINOR_VERSION)) {
-		err << "driver_dir::read_index: cannot read version higher then "
+		err << "driver_dir::read_index: " << base_ << ": cannot read version higher then "
 		    << MAJOR_VERSION << "." << MINOR_VERSION
 			<< " but found " << major << "." << minor << endl;
 	}
@@ -599,12 +599,12 @@ driver_dir::read_index(column &col) {
       } else if (word == "width:") {
         in >> col_width;
       } else {
-        warn << "driver_dir::read_index: column '" << col.name() << "' unknown tag '" << word << "'" << endl;
+        warn << "driver_dir::read_index: " << base_ << ": column '" << col.name() << "' unknown tag '" << word << "'" << endl;
       }
     }
 
 	if (name != col.name()) {
-		warn << "driver_dir::read_index: column '" << col.name() << "' had different name '" << name << "'" << endl;
+		warn << "driver_dir::read_index: column " << base_ << ": '" << col.name() << "' had different name '" << name << "'" << endl;
 	}
 
     col.init( int_type, ext_type, col_width, length, endian);
