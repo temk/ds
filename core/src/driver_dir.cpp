@@ -142,6 +142,7 @@ driver_dir::remove_all() const {
 		construct_filename(entry ->d_name, filename);
 		::remove(filename.c_str());
 	}
+	closedir(dir);
 }
 
 static void parent_dir(const string &path, string &parent)
