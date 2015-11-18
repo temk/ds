@@ -575,6 +575,7 @@ driver_dir::read_index(column &col) {
 	string name;
 	size_t length;
 	endian_t endian;
+	bool compressed = false;
 	type_t int_type, ext_type;
 
 	read_field(in, "__DS__",  (char *)NULL);
@@ -608,7 +609,7 @@ driver_dir::read_index(column &col) {
 		warn << "driver_dir::read_index: column " << base_ << ": '" << col.name() << "' had different name '" << name << "'" << endl;
 	}
 
-    col.init( int_type, ext_type, col_width, length, endian);
+    col.init( int_type, ext_type, col_width, length, endian, compressed);
 }
 
 int

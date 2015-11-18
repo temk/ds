@@ -155,7 +155,7 @@ storage::column_at(const string &name) {
 }
 
 column &
-storage::add(type_t type, const string &name,  size_t width, endian_t endian, ssize_t index) {
+storage::add(type_t type, const string &name,  size_t width, endian_t endian, ssize_t index, bool compressed) {
 	if (width < 1) {
 		err << "storage::add: new column: width < 1 is illigal" << endl;
 	}
@@ -164,7 +164,7 @@ storage::add(type_t type, const string &name,  size_t width, endian_t endian, ss
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
 
-    column *col = new column(*this, type, type, var, width, endian);
+    column *col = new column(*this, type, type, var, width, endian, compressed);
     push(col, index);
 
     driver_ ->write_index(*this); // partial flush
@@ -172,7 +172,7 @@ storage::add(type_t type, const string &name,  size_t width, endian_t endian, ss
 }
 
 column &
-storage::add(type_t type, type_t dict, const string &name,  size_t width, endian_t endian, ssize_t index) {
+storage::add(type_t type, type_t dict, const string &name,  size_t width, endian_t endian, ssize_t index, bool compressed) {
 	if (width < 1) {
 		err << "storage::add: new column: width < 1 is illigal" << endl;
 	}
@@ -181,7 +181,7 @@ storage::add(type_t type, type_t dict, const string &name,  size_t width, endian
 		warn << "storage::add: new column " << name << " got name " << var << endl;
 	}
 
-    column *col = new column(*this, type, dict, var, width, endian);
+    column *col = new column(*this, type, dict, var, width, endian, compressed);
 	push(col, index);
 
     driver_ ->write_index(*this); // partial flush
