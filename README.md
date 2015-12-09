@@ -38,9 +38,11 @@ So, it is quite efficient when the column of large length contains small number 
 ### matlab wrapper
 Please enter mex directory from Matlab and then run compile.m
 
+## Acknowledgements
+Thanks to Katrosit (2012) Ltd. for sponsoring the development of the DS library and providing extensive user feedback.
+
 ## License
 AS IS, FREE for Non-Commercial usage
-
 
 ## Site and documentations
 http://ds.temk.org/
