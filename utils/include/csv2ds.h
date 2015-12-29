@@ -34,6 +34,7 @@ namespace csv2ds {
     string output;
     type_t str_type;
     vector<type_t> types;
+    vector<bool> compressed;
     vector<string> names;
     vector< pair<string, type_t> > name_with_type; // option -t<name>
     vector<user_meta> meta;

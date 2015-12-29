@@ -82,12 +82,12 @@ namespace ds {
 		/**
 		 * add numeric column
 		**/
-        column &add(type_t type, const string &name = "", size_t width = 1, endian_t = DS_E_HOST, ssize_t index = -1);
+        column &add(type_t type, const string &name = "", size_t width = 1, endian_t = DS_E_HOST, ssize_t index = -1, bool compressed = false);
 
 		/**
 		 * add string column
 		**/
-        column &add(type_t type, type_t dict, const string &name = "", size_t width = 1, endian_t = DS_E_HOST, ssize_t index = -1);
+        column &add(type_t type, type_t dict, const string &name = "", size_t width = 1, endian_t = DS_E_HOST, ssize_t index = -1, bool compressed = false);
 
 		inline const column & operator[](size_t idx) const;
 		inline const column & operator[](const char *name) const;

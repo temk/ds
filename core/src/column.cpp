@@ -6,6 +6,7 @@
 #include <ds/filter_buff.h>
 #include <ds/filter_endian.h>
 #include <ds/filter_driver.h>
+#include <ds/filter_compress.h>
 #include <ds/driver.h>
 #include <ds/utils.h>
 #include <ds/lookup.h>
@@ -24,34 +25,35 @@ using namespace std;
 column::column(storage &s, string name)
     : error_handler(s), dirty_(false), name_(name), width_(1), length_(0), endian_(DS_E_INVALID),
 	int_type_(DS_T_INVALID), ext_type_(DS_T_INVALID), filter_(NULL), storage_(s) {
-		
+
 }
 
 /**
  * c-tor called on add column
 **/
-column::column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian)
-    : error_handler(s), dirty_(true), name_(name), width_(width), length_(0), endian_(endian),
+column::column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian, bool compressed)
+    : error_handler(s), dirty_(true), name_(name), width_(width), length_(0), endian_(endian), compressed_(compressed),
 	int_type_(int_type), ext_type_(ext_type), filter_(NULL), storage_(s) {
 
 	init_filters();
     flush();
 }
 
-void 
-column::init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian) {
-	int_type_ = int_type;
-	ext_type_ = ext_type;
-	endian_   = endian;
-    width_    = width;
-	length_   = length; 
-	
+void
+column::init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian, bool compressed) {
+	int_type_   = int_type;
+	ext_type_   = ext_type;
+	endian_     = endian;
+    width_      = width;
+	length_     = length;
+	compressed_ = compressed;
+
 	init_filters();
-	
+
 	storage_.push(this);
 }
 
-size_t 
+size_t
 column::index() const {
 	return storage_.index_of(this);
 }
@@ -60,14 +62,14 @@ column::~column(){
 	delete filter_;
 }
 
-void 
+void
 column::remove() {
 	storage_.driver_ ->remove(*this);
 	storage_.pop(this);
 }
 
 column &
-column::flush() {	
+column::flush() {
     if (dirty_) {
         filter_ ->flush();
         storage_.driver_ ->write_index(*this);
@@ -78,7 +80,7 @@ column::flush() {
 column &
 column::truncate(size_t len) {
     flush();
-	
+
 	dirty_ = true;
     storage_.driver_ ->truncate(name_, len * width_);
     length_ = len;
@@ -87,15 +89,15 @@ column::truncate(size_t len) {
 }
 
 column &
-column::append(const void *data, size_t num) {	
+column::append(const void *data, size_t num) {
 	dirty_ = true;
     filter_ ->put(data, num);
 	length_ += num;
 	return *this;
 }
 
-int 
-column::read(size_t offset, size_t num, void *data) {	
+int
+column::read(size_t offset, size_t num, void *data) {
     flush();
 
 	size_t rd = min(length_ - offset, num);
@@ -103,7 +105,7 @@ column::read(size_t offset, size_t num, void *data) {
 	return rd;
 }
 
-int 
+int
 column::read(const void *indexes, int idx_siz, size_t num, void *data) {
     flush();
 
@@ -120,23 +122,34 @@ column::push_filter(filter *f) {
 void
 column::init_filters() {
 	size_t buff_siz = storage_.buff_siz_ > 0  ? storage_.buff_siz_ : DS_BUFF_SIZ;
-	
-    push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
-	
-	if (storage_.buff_siz_ > 0) {
-        push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
+
+
+	if (compressed_) {
+        push_filter(new filter_driver(*this, DS_T_UINT8, size_of(DS_T_UINT8), 1, name_, storage_.driver_));
+
+        if (storage_.buff_siz_ > 0) {
+            push_filter(new filter_buff(*this, DS_T_UINT8, size_of(DS_T_UINT8), 1, storage_.buff_siz_));
+        }
+
+        push_filter(new filter_compress(*this, ext_type_, size_of(ext_type_), width_));
+	} else {
+        push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
+
+        if (storage_.buff_siz_ > 0) {
+            push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
+        }
 	}
-	
+
 	if (endian_ != DS_E_HOST && size_of(ext_type_) > 1) {
         push_filter(new filter_endian(*this, ext_type_, size_of(ext_type_), width_, buff_siz));
 	}
-	
+
 	if (is_str(int_type_)) {
         push_filter(new filter_str(*this, int_type_, ext_type_, width_, buff_siz, name_, storage_.driver_, length_ > 0));
 	}
 }
 
-void 
+void
 column::set_string_accessor(string_accessor *acc) {
 	if (is_str(int_type_)) {
 		warn << "column::set_string_accessor: column " << name_ << " has non-string type " << int_type_ << ". Ignored.";

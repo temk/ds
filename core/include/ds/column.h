@@ -17,7 +17,7 @@ namespace ds {
 	class column;
 	class storage;
 	class string_accessor;
-	
+
 	class column : public error_handler
 	{
 	private:
@@ -26,10 +26,11 @@ namespace ds {
         size_t width_;
         size_t length_;
 		endian_t endian_;
+        bool compressed_;
 
 		type_t int_type_;
 		type_t ext_type_;
-		
+
 		filter *filter_;
 		storage &storage_;
         meta meta_;
@@ -37,33 +38,33 @@ namespace ds {
 	protected:
 		void push_filter(filter *);
 		virtual void init_filters();
-		
-	public:		
+
+	public:
         column(storage &s, string name);
-        column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian);
-		
-        void init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian);
-		
+        column(storage &s, type_t int_type, type_t ext_type, const string &name, size_t width, endian_t endian, bool compessed);
+
+        void init(type_t int_type, type_t ext_type, size_t width, size_t length, endian_t endian, bool compessed);
+
 		virtual ~column();
-		
+
 		void remove();
 		void detach();
-		
+
 		column &flush();
-		
+
 		column &truncate(size_t len = 0);
-		
+
 		column &append(const void *data, size_t data_num);
 
 		int read(size_t offset, size_t num, void *dst);
 		int read(const void *indexes, int idx_siz, size_t num, void *dst);
-		
+
 		template<typename T> int read(const T* indexes, size_t num, void *dst);
 
 		size_t index() const;
-		
+
 		inline const string & name() const;
-		
+
         inline size_t width() const;
         inline size_t length() const;
 
@@ -71,6 +72,7 @@ namespace ds {
 		inline type_t type() const;
 		inline type_t ext_type() const;
 
+        inline bool compressed() const;
 
         inline const meta &tags() const;
         inline meta &tags();
@@ -82,19 +84,23 @@ namespace ds {
 	inline type_t column::type() const {
 		return int_type_;
 	}
-	
+
+	inline bool column::compressed() const {
+		return compressed_;
+	}
+
 	inline type_t column::ext_type() const {
 		return ext_type_;
 	}
-	
+
 	inline endian_t column::endian() const {
 		return endian_;
 	}
-	
+
 	inline const string & column::name() const {
 		return name_;
 	}
-	
+
     inline size_t column::width() const {
         return width_;
     }
@@ -111,10 +117,10 @@ namespace ds {
         return meta_;
     }
 
-	template<typename T> int 
+	template<typename T> int
 	column::read(const T* indexes, size_t num, void *dst) {
 		return read(indexes, sizeof(T), num, dst);
-	}	
+	}
 }
 
 // ==============================================================================================
