@@ -81,6 +81,7 @@ convert(istream &in, storage &stor, options &opt) {
   count_columns(line, opt);
 
   opt.names.resize(opt.col_limit);
+  opt.compressed.resize(opt.col_limit, false);
 
   vector<const char *> s_token;
   vector<const char *> e_token;
@@ -314,9 +315,9 @@ create_columns(storage &ds, vector<appender_t> &appenders, options &opt) {
     }
 
     if (is_str(opt.types[k])) {
-      ds.add(opt.types[k], DS_T_UINT32, opt.names[k]);
+      ds.add(opt.types[k], DS_T_UINT32, opt.names[k], 1, DS_E_HOST, -1, opt.compressed[k]);
     } else {
-      ds.add(opt.types[k], opt.names[k]);
+      ds.add(opt.types[k], opt.names[k], 1, DS_E_HOST, -1, opt.compressed[k]);
     }
 
     appenders.push_back(create_appender(opt.types[k]));

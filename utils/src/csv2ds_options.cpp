@@ -56,6 +56,7 @@ csv2ds::usage(ostream &out, const string &prog)  {
       << TAB << TAB << "-q<quote>" << TAB << "Use quote <quote> for strings. Default quote is 'no quote' (i.e. -q0) " << endl
       << TAB << TAB << "-n "  << TAB << "Read column names as a first line from csv" << endl
       << TAB << TAB << "-n<number> <name>"  << TAB << "Set name <name> for column #<number>" << endl
+      << TAB << TAB << "-z<number>"  << TAB << "Set compression for column #<number>" << endl
       << TAB << TAB << "-t<number> <type>"  << TAB << "Set type <type> for column #<number>" << endl
       << TAB << TAB << "-t<name> <type>"  << TAB << "Set type <type> for column named <name>" << endl
       << TAB << TAB << "-s<number>"  << TAB << "Set default string element size. Valid nnumber is 8, 16 or 32." << endl
@@ -268,6 +269,25 @@ csv2ds::parse_params(int argc, char **argv, options &opt) {
       }
 
       opt.types[num - 1] = t;
+      continue;
+    }
+
+    if (param[1] == 'z') {
+      char *endp = NULL;
+      long num = strtol(param.c_str() + 2, &endp, 10);
+
+
+      if (endp != param.c_str() + param.length()) {
+        cerr << endl << "Error: -z<number> expected number, found string" << endl << endl;
+        usage(cerr, argv[0]);
+        return -1;
+      }
+
+      if (opt.compressed.size() < num) {
+        opt.compressed.resize(num, false);
+      }
+
+      opt.compressed[num - 1] = true;
       continue;
     }
 

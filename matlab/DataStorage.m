@@ -100,16 +100,17 @@ classdef DataStorage < handle
         %       Index  - adds column to specific index.
         %       EncSize - encoding size. valid only for strings. 
         %       Width   - the table width
+        %       Compress - true/false
         %Example:
         %   ds.add('uint8', 'Name', 'A'); % create uint8 column named 'A'
         %
         %   b = random(25, 'single');
         %   ds.add( class(b), 'Name', 'b', 'Endian', 'little'); % create float32 column named 'b', little endian
         %    
-            [name, endian, index, enc_type, width] = get_parameters(self, ...
-                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncType', 'uint32', 'Width', 1}, ...
+            [name, endian, index, enc_type, width, compress] = get_parameters(self, ...
+                                                           {'Name', 'var', 'Endian', 'host', 'Index', 0, 'EncType', 'uint32', 'Width', 1, 'Compress', false}, ...
                                                            varargin);
-            ds_add(self.handle, type, name, endian, int64(index - 1), enc_type, uint64(width));
+            ds_add(self.handle, type, name, endian, int64(index - 1), enc_type, uint64(width), logical(compress));
             self.column = ds_info(self.handle);
         end
         

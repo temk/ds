@@ -119,9 +119,23 @@ public class DataStorage {
      * @param endian - byte order  
      * @param index - column index
      * @param extType - integral type to store strings via dictionary. use Type.INVALID when it not relevant
+     * @param compress - is column comressed
      * @return new column
     **/
-    public native Column addColumn(Type type, Type extType, String name, int width, ByteOrder endian, long index);
+    public native Column addColumn(Type type, Type extType, String name, int width, ByteOrder endian, long index, boolean compress);
+
+    /**
+     * Create new column. 
+     * @param type - type to store underlying data
+     * @param name - column name
+     * @param endian - byte order  
+     * @param index - column index
+     * @param extType - integral type to store strings via dictionary. use Type.INVALID when it not relevant
+     * @return new column
+    **/
+    public Column addColumn(Type type, Type extType, String name, int width, ByteOrder endian, long index) {
+        return addColumn(type, extType, name, width, endian, index, false);
+    }
 
     /**
      * Create new column. 

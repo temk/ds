@@ -6,6 +6,7 @@
 #include <ds/filter_buff.h>
 #include <ds/filter_endian.h>
 #include <ds/filter_driver.h>
+#include <ds/filter_compress.h>
 #include <ds/driver.h>
 #include <ds/utils.h>
 #include <ds/lookup.h>
@@ -122,14 +123,21 @@ void
 column::init_filters() {
 	size_t buff_siz = storage_.buff_siz_ > 0  ? storage_.buff_siz_ : DS_BUFF_SIZ;
 
-    push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
 
-	if (storage_.buff_siz_ > 0) {
-        push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
-	}
+	if (compressed_) {
+        push_filter(new filter_driver(*this, DS_T_UINT8, size_of(DS_T_UINT8), 1, name_, storage_.driver_));
 
-	if (compressed_ > 0) {
-     //   push_filter(new filter_zip(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
+        if (storage_.buff_siz_ > 0) {
+            push_filter(new filter_buff(*this, DS_T_UINT8, size_of(DS_T_UINT8), 1, storage_.buff_siz_));
+        }
+
+        push_filter(new filter_compress(*this, ext_type_, size_of(ext_type_), width_));
+	} else {
+        push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
+
+        if (storage_.buff_siz_ > 0) {
+            push_filter(new filter_buff(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
+        }
 	}
 
 	if (endian_ != DS_E_HOST && size_of(ext_type_) > 1) {

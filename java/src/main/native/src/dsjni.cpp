@@ -316,7 +316,7 @@ JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, 
 }
 
 JNIEXPORT jobject JNICALL 
-Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring jname, jint width, jobject jendian, jlong index) {
+Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring jname, jint width, jobject jendian, jlong index, jboolean compress) {
     type_t type = jni_to_type(env, jtype);
 	type_t ext_type = jni_to_type(env, jext_type);
 	endian_t endian = jni_to_endian(env, jendian);
@@ -331,10 +331,10 @@ Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype,
 		get_handle(env, self, stor);
 		
 		if (is_str(type)) {
-            col = &stor ->add(type, ext_type, name, width, endian, index);
+            col = &stor ->add(type, ext_type, name, width, endian, index, compress);
 			col ->set_string_accessor(get_string_accessor(env, type));
 		} else {
-            col = &stor ->add(type, name, width, endian, index);
+            col = &stor ->add(type, name, width, endian, index, compress);
 		}
 		
 		jclass clazz = env->FindClass( "org/temk/ds/Column" );

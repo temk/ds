@@ -470,9 +470,11 @@ driver_dir::write_index(const column &col) {
 		out << "dict: "   << col.ext_type() << endl;
 	}
 
+
 	out << "endian: " << col.endian()  << endl
         << "length: " << col.length()  << endl
-        << "width:  " << col.width()   << endl;
+        << "width:  " << col.width()   << endl
+        << "compressed: "   << col.compressed() << endl;
 
     vector<string> keys;
     col.tags().keys(keys);
@@ -600,6 +602,8 @@ driver_dir::read_index(column &col) {
         col.tags().set(key, val);
       } else if (word == "width:") {
         in >> col_width;
+      } else if (word == "compressed:") {
+        in >> compressed;
       } else {
         warn << "driver_dir::read_index: " << base_ << ": column '" << col.name() << "' unknown tag '" << word << "'" << endl;
       }
