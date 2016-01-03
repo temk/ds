@@ -11,7 +11,7 @@ extern "C" {
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnNumber(JNIEnv *env, jobject self);
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnByIndex(JNIEnv *env, jobject self, jlong index);
 	JNIEXPORT jlong JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, jstring name);
-    JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring name, jint width, jobject jendian, jlong index);
+    JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring name, jint width, jobject jendian, jlong index, jboolean);
     JNIEXPORT void JNICALL Java_org_temk_ds_DataStorage_flush(JNIEnv *env, jobject self);
     JNIEXPORT void JNICALL Java_org_temk_ds_DataStorage_addMeta(JNIEnv *env, jobject self, jstring key, jstring value);
     JNIEXPORT jobject JNICALL Java_org_temk_ds_DataStorage_getMeta(JNIEnv *env, jobject self);
