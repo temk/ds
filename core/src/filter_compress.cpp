@@ -85,7 +85,7 @@ filter_compress_impl<T>::get(size_t offs, size_t num, void *data)
 }
 
 filter_compress::filter_compress(const error_handler &ref, type_t type, size_t siz, size_t width)
-  : filter(ref, type, siz, DS_T_UINT8, 1, 1) {
+  : filter(ref, type, siz, DS_T_UINT8, 1, width) {
 
     switch(type)
     {
@@ -136,7 +136,7 @@ filter_compress::flush() {
 void
 filter_compress::put(const void *data, size_t num)
 {
-    sf_ ->put(data, num);
+    sf_ ->put(data, num * width());
 }
 
 void
@@ -146,7 +146,7 @@ filter_compress::get(size_t offs, size_t num, void *data)
         err << "not implemented" << endl;
     }
 
-    sf_ ->get(0, num, data);
+    sf_ ->get(0, num * width(), data);
 }
 
 void

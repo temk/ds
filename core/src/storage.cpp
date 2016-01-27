@@ -1,3 +1,4 @@
+#include <ds/version.h>
 #include <ds/storage.h>
 
 #include <ds/utils.h>
@@ -219,6 +220,14 @@ storage::push(column *col, ssize_t index) {
 	col_by_name_[col ->name()] = col;
 
 	++ col_num_;
+}
+
+void
+storage::version(int &major, int &minor, int &build)
+{
+    major = MAJOR_VERSION;
+    minor = MINOR_VERSION;
+    build = BUILD_VERSION;
 }
 
 // =================================================================================================================================

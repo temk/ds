@@ -99,6 +99,10 @@ namespace ds {
 
         inline const meta &tags() const;
         inline meta &tags();
+
+        // ==========================
+        static void version(int &major, int &minor, int &build);
+
     };
 
 	// ==============================================================================

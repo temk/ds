@@ -16,6 +16,18 @@ using namespace std;
 typedef pair<JNIEnv *, jobjectArray> str_pair_t;
 
 // ======================================================================================
+static bool check_version(string &error) {
+    int major, minor, build;
+    storage::version(major, minor, build);
+    if (MAJOR_VERSION == major && MINOR_VERSION == minor && BUILD_VERSION == build) {
+        return true;
+    }
+
+    char buff[256];
+    snprintf(buff, 256, "Expected version %d.%d.%d but found %d.%d.%d", MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION, major, minor, build);
+    error = buff;
+}
+// ======================================================================================
 string_accessor * get_string_accessor(JNIEnv * env, type_t type, bool singletone = true) {
   switch(type) {
       case DS_T_STRING8:  return new jni_string_accessor<char>(env, singletone);
@@ -35,23 +47,23 @@ static void jni_to_string(JNIEnv *env, jstring jstr, string &result) {
 static jobject endian_to_jni(JNIEnv *env, endian_t endian) {
 	jobject result = NULL;
 	string name = "invalid";
-	
+
 	jclass clazz = env->FindClass( "java/nio/ByteOrder" );
 	jfieldID fid = 0;
 	switch(endian) {
 	case DS_E_BIG:
 		fid = env ->GetStaticFieldID(clazz, "BIG_ENDIAN", "Ljava/nio/ByteOrder;");
 		break;
-		
+
 	case DS_E_LITTLE:
 		fid = env ->GetStaticFieldID(clazz, "LITTLE_ENDIAN", "Ljava/nio/ByteOrder;");
 		break;
-		
+
 	case DS_E_INVALID:
 	default:
 		break;
 	}
-	
+
 	result = env ->GetStaticObjectField(clazz, fid);
 	return result;
 }
@@ -63,7 +75,7 @@ static jobject type_to_jni(JNIEnv *env, type_t type) {
 	string sig, name;
 
 	jclass clazz = env->FindClass( "org/temk/ds/Type" );
-	
+
 	switch(type) {
 	CASE_TYPE(INVALID);
 	CASE_TYPE(BOOL);
@@ -81,10 +93,10 @@ static jobject type_to_jni(JNIEnv *env, type_t type) {
 	CASE_TYPE(STRING16);
 	CASE_TYPE(STRING32);
 	};
-	
+
 	jfieldID fid = env ->GetStaticFieldID(clazz, name.c_str(), "Lorg/temk/ds/Type;");
 	result =  env ->GetStaticObjectField(clazz, fid);
-	
+
 	return result;
 }
 
@@ -93,10 +105,10 @@ static jobject type_to_jni(JNIEnv *env, type_t type) {
 static type_t jni_to_type(JNIEnv *env, jobject value) {
 	jclass clazz = env->FindClass( "org/temk/ds/Type" );
 	jmethodID meth = env->GetMethodID(clazz, "name", "()Ljava/lang/String;");
-	
-	string name;	
+
+	string name;
 	jni_to_string(env, (jstring)env->CallObjectMethod(value, meth), name);
-	
+
     CHECK_TYPE(name, BOOL);
     CHECK_TYPE(name, INT8);
     CHECK_TYPE(name, INT16);
@@ -111,18 +123,18 @@ static type_t jni_to_type(JNIEnv *env, jobject value) {
     CHECK_TYPE(name, STRING8);
     CHECK_TYPE(name, STRING16);
     CHECK_TYPE(name, STRING32);
-	
+
 	return DS_T_INVALID;
 }
 
-static endian_t 
+static endian_t
 jni_to_endian(JNIEnv *env, jobject value) {
 	jclass clazz = env->FindClass( "java/nio/ByteOrder" );
 	jmethodID meth = env->GetMethodID(clazz, "toString", "()Ljava/lang/String;");
 
-	string name;	
+	string name;
 	jni_to_string(env, (jstring)env->CallObjectMethod(value, meth), name);
-	
+
 	if (name == "BIG_ENDIAN") {
 		return DS_E_BIG;
 	} else if (name == "LITTLE_ENDIAN") {
@@ -141,32 +153,32 @@ static int str_to_mode(const char *str) {
 	int mode = 0;
 	for (; *str; ++ str) {
 		switch (*str) {
-		case 'r':  
-			mode |= DS_O_READ; 
-			break;
-			
-		case 'w':  
-			mode |= DS_O_WRITE; 
-			break;
-			
-		case 'c':  
-			mode |= DS_O_CREATE; 
-			break;
-			
-		case 't':  
-			mode |= DS_O_TRUNC; 
+		case 'r':
+			mode |= DS_O_READ;
 			break;
 
-		case 's':  
-			mode |= DS_O_SAFE; 
+		case 'w':
+			mode |= DS_O_WRITE;
 			break;
 
-		case 'u':  
-			mode |= DS_O_UNIQUE; 
+		case 'c':
+			mode |= DS_O_CREATE;
 			break;
-		} 
+
+		case 't':
+			mode |= DS_O_TRUNC;
+			break;
+
+		case 's':
+			mode |= DS_O_SAFE;
+			break;
+
+		case 'u':
+			mode |= DS_O_UNIQUE;
+			break;
+		}
 	}
-	
+
 	return mode;
 }
 
@@ -174,17 +186,17 @@ static int str_to_mode(const char *str) {
 template<typename T>
 static void set_handle(JNIEnv *env, jobject self, T *handle) {
 	jclass clazz = env->GetObjectClass(self);
- 
+
    jfieldID fid = env->GetFieldID(clazz, "handle", "J");
-   env->SetLongField(self, fid, jlong(handle));	
+   env->SetLongField(self, fid, jlong(handle));
 }
 
 template<typename T>
 static void get_handle(JNIEnv *env, jobject self, T *&handle) {
 	jclass clazz = env->GetObjectClass(self);
- 
+
     jfieldID fid = env->GetFieldID(clazz, "handle", "J");
-    jlong value = env->GetLongField(self, fid);	
+    jlong value = env->GetLongField(self, fid);
     handle = reinterpret_cast<T *>(value);
 }
 
@@ -224,9 +236,14 @@ jni_get_meta(JNIEnv *env, const meta &m) {
 // ========================================================================================================
 #include <fstream>
 
-JNIEXPORT void JNICALL 
+JNIEXPORT void JNICALL
 Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstring jmode, jlong buff_siz) {
-	string path, mode;	
+    string version;
+    if (!check_version(version)) {
+		jni_throw(env, version.c_str());
+    }
+
+	string path, mode;
 	jni_to_string(env, jpath, path);
 	jni_to_string(env, jmode, mode);
 
@@ -239,9 +256,9 @@ Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstr
         for (size_t k = 0; k < stor ->cols(); ++ k) {
             column *col = &stor ->column_at(k);
 			if (is_str(col ->type())) {
-				col ->set_string_accessor(get_string_accessor(env, col ->type()));				
+				col ->set_string_accessor(get_string_accessor(env, col ->type()));
 			}
-			
+
 			jstring jname = env ->NewStringUTF(col ->name().c_str());
             env->NewObject(clazz, meth, jname, jlong(col), col ->width(), self);
         }
@@ -250,16 +267,16 @@ Java_org_temk_ds_DataStorage_open(JNIEnv *env, jobject self, jstring jpath, jstr
 	}
 }
 
-JNIEXPORT void JNICALL 
+JNIEXPORT void JNICALL
 Java_org_temk_ds_DataStorage_close(JNIEnv *env, jobject self) {
 	storage *stor;
-	try {		
+	try {
 		get_handle(env, self, stor);
 		if (stor != NULL) {
 			for (size_t k = 0; k < stor ->cols(); ++ k) {
 				column *col = &stor ->column_at(k);
 				if (is_str(col ->type())) {
-					//string_accessor * acc = col ->get_string_accessor();				
+					//string_accessor * acc = col ->get_string_accessor();
 					//delete acc;
 				}
 			}
@@ -272,11 +289,11 @@ Java_org_temk_ds_DataStorage_close(JNIEnv *env, jobject self) {
 	}
 }
 
-JNIEXPORT jlong JNICALL 
+JNIEXPORT jlong JNICALL
 Java_org_temk_ds_DataStorage_getColumnNumber(JNIEnv *env, jobject self) {
 	storage *stor;
 	jlong result = -1;
-	try {		
+	try {
 		get_handle(env, self, stor);
 		result = stor ->cols();
 	} catch(const exception &ex) {
@@ -285,11 +302,11 @@ Java_org_temk_ds_DataStorage_getColumnNumber(JNIEnv *env, jobject self) {
 	return result;
 }
 
-JNIEXPORT jlong JNICALL 
+JNIEXPORT jlong JNICALL
 Java_org_temk_ds_DataStorage_getColumnByIndex(JNIEnv *env, jobject self, jlong index) {
 	storage *stor;
 	jlong result = 0;
-	try {		
+	try {
 		get_handle(env, self, stor);
 		result = jlong( &stor ->column_at(index) );
 	} catch(const exception &ex) {
@@ -299,15 +316,15 @@ Java_org_temk_ds_DataStorage_getColumnByIndex(JNIEnv *env, jobject self, jlong i
 }
 
 JNIEXPORT jlong
-JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, jstring jname) { 
+JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, jstring jname) {
 	storage *stor;
 	jlong result = 0;
-	try {		
+	try {
 		string name;
 		jni_to_string(env, jname, name);
-		
+
 		get_handle(env, self, stor);
-		
+
 		result = jlong(& stor ->column_at(name) );
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
@@ -315,42 +332,42 @@ JNICALL Java_org_temk_ds_DataStorage_getColumnByName(JNIEnv *env, jobject self, 
 	return result;
 }
 
-JNIEXPORT jobject JNICALL 
+JNIEXPORT jobject JNICALL
 Java_org_temk_ds_DataStorage_addColumn(JNIEnv *env, jobject self, jobject jtype, jobject jext_type, jstring jname, jint width, jobject jendian, jlong index, jboolean compress) {
     type_t type = jni_to_type(env, jtype);
 	type_t ext_type = jni_to_type(env, jext_type);
 	endian_t endian = jni_to_endian(env, jendian);
-	
+
 	string name;
-	jni_to_string(env, jname, name); 
-	
+	jni_to_string(env, jname, name);
+
 	storage *stor = NULL;
 	column  *col = NULL;
-	jobject result = NULL; 
-	try {		
+	jobject result = NULL;
+	try {
 		get_handle(env, self, stor);
-		
+
 		if (is_str(type)) {
             col = &stor ->add(type, ext_type, name, width, endian, index, compress);
 			col ->set_string_accessor(get_string_accessor(env, type));
 		} else {
             col = &stor ->add(type, name, width, endian, index, compress);
 		}
-		
+
 		jclass clazz = env->FindClass( "org/temk/ds/Column" );
         jmethodID meth = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;JILorg/temk/ds/DataStorage;)V");
         result = env->NewObject(clazz, meth, jname, jlong(col), width, self);
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
 	}
-	
+
 	return result;
 }
 
-JNIEXPORT void JNICALL 
+JNIEXPORT void JNICALL
 Java_org_temk_ds_DataStorage_flush(JNIEnv *env, jobject self) {
 	storage *stor;
-	try {		
+	try {
 		get_handle(env, self, stor);
 		stor ->flush();
 	} catch(const exception &ex) {
@@ -385,7 +402,7 @@ Java_org_temk_ds_DataStorage_getMeta(JNIEnv *env, jobject self) {
   return result;
 }
 
-JNIEXPORT jstring JNICALL 
+JNIEXPORT jstring JNICALL
 Java_org_temk_ds_DataStorage_getVersion(JNIEnv *env) {
 	char buff[128];
 	sprintf(buff, "%d.%d.%d", MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION);
@@ -393,10 +410,10 @@ Java_org_temk_ds_DataStorage_getVersion(JNIEnv *env) {
 }
 
 // ========================================================================================================
-JNIEXPORT void 
+JNIEXPORT void
 JNICALL Java_org_temk_ds_Column_remove(JNIEnv *env, jobject self) {
 	column *col = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		col ->remove();
 	} catch(const exception &ex) {
@@ -404,10 +421,10 @@ JNICALL Java_org_temk_ds_Column_remove(JNIEnv *env, jobject self) {
 	}
 }
 
-JNIEXPORT void JNICALL 
+JNIEXPORT void JNICALL
 Java_org_temk_ds_Column_flush(JNIEnv *env, jobject self) {
 	column *col = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		col ->flush();
 	} catch(const exception &ex) {
@@ -447,7 +464,7 @@ Java_org_temk_ds_Column_getMeta(JNIEnv *env, jobject self) {
 JNIEXPORT void
 JNICALL Java_org_temk_ds_Column_truncate(JNIEnv *env, jobject self, jlong new_length) {
 	column *col = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		col ->truncate(new_length);
 	} catch(const exception &ex) {
@@ -455,17 +472,17 @@ JNICALL Java_org_temk_ds_Column_truncate(JNIEnv *env, jobject self, jlong new_le
 	}
 }
 
-JNIEXPORT jlong JNICALL 
+JNIEXPORT jlong JNICALL
 Java_org_temk_ds_Column_getIndex(JNIEnv *env, jobject self) {
 	column *col = NULL;
 	jlong result = -1;
-	try {		
+	try {
 		get_handle(env, self, col);
 		result = col ->index();
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
-	}	
-	
+	}
+
 	return result;
 }
 
@@ -502,7 +519,7 @@ JNIEXPORT jobject JNICALL
 Java_org_temk_ds_Column_getExtType(JNIEnv *env, jobject self) {
 	column *col = NULL;
 	jobject result = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		result = type_to_jni(env, col ->ext_type());
 	} catch(const exception &ex) {
@@ -511,11 +528,11 @@ Java_org_temk_ds_Column_getExtType(JNIEnv *env, jobject self) {
 	return result;
 }
 
-JNIEXPORT jobject JNICALL 
+JNIEXPORT jobject JNICALL
 Java_org_temk_ds_Column_getByteOrder(JNIEnv *env, jobject self) {
 	column *col = NULL;
 	jobject result = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		result = endian_to_jni(env, col ->endian());
 	} catch(const exception &ex) {
@@ -524,11 +541,11 @@ Java_org_temk_ds_Column_getByteOrder(JNIEnv *env, jobject self) {
 	return result;
 }
 
-JNIEXPORT jobject JNICALL 
+JNIEXPORT jobject JNICALL
 Java_org_temk_ds_Column_getType(JNIEnv *env, jobject self) {
 	column *col = NULL;
 	jobject result = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		result = type_to_jni(env, col ->type());
 	} catch(const exception &ex) {
@@ -537,7 +554,7 @@ Java_org_temk_ds_Column_getType(JNIEnv *env, jobject self) {
 	return result;
 }
 
-static void 
+static void
 jni_read(column *col, JNIEnv *env, jarray data, jlong offset, jlong num) {
 
 	if (is_str(col->type())) {
@@ -547,10 +564,10 @@ jni_read(column *col, JNIEnv *env, jarray data, jlong offset, jlong num) {
 		col ->read(offset, num, ptr);
 		env ->ReleasePrimitiveArrayCritical(data, ptr, 0);
 	}
-	
+
 }
 
-static void 
+static void
 jni_read(column *col, JNIEnv *env, jarray data, jarray indexes, int idx_siz) {
     size_t num = env ->GetArrayLength(indexes);
 	void *idx = env ->GetPrimitiveArrayCritical(indexes, 0);
@@ -562,13 +579,13 @@ jni_read(column *col, JNIEnv *env, jarray data, jarray indexes, int idx_siz) {
 		col ->read(idx, idx_siz, num, ptr);
 		env ->ReleasePrimitiveArrayCritical(data, ptr, 0);
 	}
-	
+
 	env ->ReleasePrimitiveArrayCritical(indexes, idx, 0);
 }
 
-static void 
+static void
 jni_write(column *col, JNIEnv *env, jarray data, jlong num) {
-	
+
 	if (is_str(col->type())) {
 		col ->append(data, num);
 	} else {
@@ -578,25 +595,25 @@ jni_write(column *col, JNIEnv *env, jarray data, jlong num) {
 	}
 }
 
-JNIEXPORT void 
+JNIEXPORT void
 JNICALL Java_org_temk_ds_Column_read(JNIEnv *env, jobject self, jobject data, jobject indexes, jint index_siz, jlong offset, jlong num) {
 	column *col = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
 		if (indexes == NULL) {
-			jni_read(col, env, static_cast<jarray>(data), offset, num);			
+			jni_read(col, env, static_cast<jarray>(data), offset, num);
 		} else {
-			jni_read(col, env, static_cast<jarray>(data), static_cast<jarray>(indexes), index_siz);			
+			jni_read(col, env, static_cast<jarray>(data), static_cast<jarray>(indexes), index_siz);
 		}
 	} catch(const exception &ex) {
 		jni_throw(env, ex.what());
 	}
 }
 
-JNIEXPORT void 
+JNIEXPORT void
 JNICALL Java_org_temk_ds_Column_write(JNIEnv *env, jobject self, jobject data, jlong num) {
 	column *col = NULL;
-	try {		
+	try {
 		get_handle(env, self, col);
         jni_write(col, env, static_cast<jarray>(data), num);
 	} catch(const exception &ex) {
