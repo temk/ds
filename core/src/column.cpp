@@ -131,7 +131,7 @@ column::init_filters() {
             push_filter(new filter_buff(*this, DS_T_UINT8, size_of(DS_T_UINT8), 1, storage_.buff_siz_));
         }
 
-        push_filter(new filter_compress(*this, ext_type_, size_of(ext_type_), width_));
+        push_filter(new filter_compress(*this, ext_type_, size_of(ext_type_), width_, storage_.buff_siz_));
 	} else {
         push_filter(new filter_driver(*this, ext_type_, size_of(ext_type_), width_, name_, storage_.driver_));
 

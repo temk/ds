@@ -37,6 +37,8 @@ namespace ds {
 		inline const filter *next() const;
 		inline filter *next();
 		virtual void next(filter *);
+
+        virtual ssize_t available();
 	};
 
 	// ===============================================================

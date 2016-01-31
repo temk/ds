@@ -327,8 +327,22 @@ driver_dir::write(const string &key, const void *data, size_t len) {
 	}
 }
 
+ssize_t
+driver_dir::available(const string &key) {
+	string filename;
+	construct_filename(key + ".dat", filename);
+
+	struct stat buf;
+	if (stat(filename.c_str(), &buf) != 0) {
+		err << "Error during stat file '" << filename << "'." << endl;
+		return -1;
+	}
+
+    return buf.st_size;
+}
+
 void
-driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {
+driver_dir::read(const string &key, size_t offs, void *dst, size_t len, size_t *result) {
 	if ((mode_ & DS_O_READ) == 0) {
 		err << "driver_dir::read: Not openned for read." << endl;
 	}
@@ -346,7 +360,9 @@ driver_dir::read(const string &key, size_t offs, void *dst, size_t len) {
 	ssize_t rd = ::read(fd, dst, len);
 	::close(fd);
 
-	if (rd != len) {
+    if (result != NULL) {
+        *result = rd;
+    } else if (rd != len) {
 		err << "Error during read file '" << filename << "'." << endl;
 	}
 }

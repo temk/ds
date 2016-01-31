@@ -30,7 +30,10 @@ namespace ds {
 		void close();
 
 		void write(const string &key, const void *data, size_t len);
-		void read(const string &key, size_t offs, void *dst, size_t len);
+
+		virtual ssize_t available(const string &key);
+
+		void read(const string &key, size_t offs, void *dst, size_t len, size_t *rd = NULL);
 		void read(const string &key, const void *indexes, int idx_siz, size_t num, void *dst, size_t el_siz);
 
 		void truncate(const string &key, size_t sz);

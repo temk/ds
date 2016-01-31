@@ -2,13 +2,14 @@
 #define __DS_FILTER_COMPRESS_H__
 #include <ds/filter.h>
 
+#define DEFAULT_COMPRED_READ_BUF_SIZ (1 << 20)
 namespace ds {
 	class filter_compress : public filter {
 	private:
         filter *sf_;
 
 	public:
-        filter_compress(const error_handler &ref, type_t type, size_t siz, size_t width);
+        filter_compress(const error_handler &ref, type_t type, size_t siz, size_t width, size_t buf_siz);
 		~filter_compress();
 
 		void flush();

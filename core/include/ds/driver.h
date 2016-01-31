@@ -27,7 +27,9 @@ namespace ds {
 
 		virtual void write(const string &key, const void *data, size_t len) = 0;
 
-		virtual void read(const string &key, size_t offs, void *dst, size_t len) = 0;
+		virtual ssize_t available(const string &key) = 0;
+
+		virtual void read(const string &key, size_t offs, void *dst, size_t len, size_t *rd = NULL) = 0;
 		virtual void read(const string &key, const void *indexes, int idx_siz, size_t num, void *dst, size_t el_siz) = 0;
 
 		virtual void truncate(const string &key, size_t new_len) = 0;
@@ -43,6 +45,7 @@ namespace ds {
 		virtual void read_index(column &)  = 0;
 
         virtual int get_mode() const = 0;
+
 
 	};
 }
