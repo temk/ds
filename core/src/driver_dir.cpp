@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 using namespace ds;
 using namespace std;
@@ -31,6 +32,18 @@ using namespace std;
 #endif // PATH_SEPARATOR
 
 #define FILE_MASK (mask_ & 0666)
+
+void __perror(const char *fmt, ... ) 
+{
+	char buff[1024];
+
+	va_list ap;
+	va_start(ap, fmt); 
+	vsnprintf(buff, 1024, fmt, ap);
+	va_end(ap); 
+
+	perror(buff);
+}
 
 static void
 parse_meta(const string &str, string &key, string &val) {
@@ -176,14 +189,14 @@ driver_dir::open(const string &base, int mode) {
 
     int dir = ::open(base_.c_str(), O_RDONLY|O_DIRECTORY, FILE_MASK);
     if (dir < 0) {
-        perror("can't open ds' directory");
+        __perror("can't open ds' directory: %s", base_.c_str());
     }
     ::close(dir);
 
     string index = base_ + "/index";
-    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|O_CREAT, FILE_MASK);
+    file_ = ::open(index.c_str(), O_RDONLY|O_DIRECT|(mode & DS_O_CREATE ? O_CREAT : 0), FILE_MASK);
     if (file_ < 0) {
-        perror("can't open index file");
+        __perror("can't open index file: %s", index.c_str());
     } else {
 //        printf("index file opened\n");
     }
@@ -192,7 +205,7 @@ driver_dir::open(const string &base, int mode) {
     if (mode & DS_O_SAFE) {
         int lm = (mode & DS_O_WRITE) ? LOCK_EX : LOCK_SH;
         if (flock(file_, lm)) {
-            perror("Fail to lock file");
+            __perror("Fail to lock file: %s",  index.c_str());
         } else {
             //printf("file locked\n");
         }
