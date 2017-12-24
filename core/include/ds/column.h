@@ -23,10 +23,10 @@ namespace ds {
 	private:
 		bool dirty_;
 		string name_;
-        size_t width_;
-        size_t length_;
+		size_t width_;
+		size_t length_;
 		endian_t endian_;
-        bool compressed_;
+		bool compressed_;
 
 		type_t int_type_;
 		type_t ext_type_;
@@ -126,6 +126,14 @@ namespace ds {
 // ==============================================================================================
 extern "C" {
   void ds_column_append(void *col, void *, uint32_t len);
+	const char * ds_column_name(const void *col);
+	size_t ds_column_width(const void *col);
+	size_t ds_column_length(const void *col);
+  ds_type_t ds_column_type(const void *col);
+
+	int ds_column_read(void *col, size_t offset, size_t num, void *dst);
+	int ds_column_read_double(void *col, size_t offset, size_t num, double *dst); 
+
 }
 
 #endif // __DS_COLUMN_H__

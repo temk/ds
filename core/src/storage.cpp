@@ -235,6 +235,11 @@ void *ds_open(const char *path, int mode, int buff_siz) {
   return new ds::storage(path, mode, buff_siz);
 }
 
+size_t ds_cols(void *ds) {
+  ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
+  return stor ->cols();
+}
+
 void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, int width, int c_endian, int index ) {
   ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
 
@@ -255,8 +260,9 @@ void * ds_add_column(void *ds, int c_type, int c_dict_type, const char *c_name, 
   }
 
   ds::column & col = (dict_type == DS_T_INVALID)  ?
-                       stor ->add(type, name, width, endian, index) :
-                       stor ->add(type, dict_type, name, width, endian, index);
+                      stor ->add(type, name, width, endian, index) :
+                      stor ->add(type, dict_type, name, width, endian, index);
+
   return &col;
 }
 
@@ -284,6 +290,10 @@ void   ds_close(void *ds) {
   ds::storage *stor = reinterpret_cast<ds::storage *>(ds);
   stor ->close();
   delete stor;
+}
+
+void ds_version(int *major, int *minor, int *build) {
+	ds::storage::version(*major, *minor, *build);
 }
 
 // =================================================================================================================================

@@ -151,12 +151,18 @@ namespace ds {
 // ==============================================================================================
 extern "C" {
   void * ds_open(const char *path, int mode, int buff_siz);
+
+	size_t ds_cols(void *ds);
+
   void * ds_add_column(void *ds, int type, int dict_type, const char *name, int width, int endian, int index );
   void * ds_get_column_by_name(void *ds, const char *name);
   void * ds_get_column_by_index(void *ds, int index);
+
   void ds_add_meta(void *ds, const char *key, const char *val);
   void ds_flush(void *ds);
   void ds_close(void *ds);
+
+	void ds_version(int *major, int *minor, int *build);
 }
 // ==============================================================================================
 

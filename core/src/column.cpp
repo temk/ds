@@ -163,3 +163,33 @@ void ds_column_append(void *ptr, void *data, uint32_t len) {
   ds::column *col = reinterpret_cast<ds::column *>(ptr);
   col ->append(data, len);
 }
+
+const char * ds_column_name(const void *ptr) {
+	const ds::column *col = reinterpret_cast<const ds::column *>(ptr);
+	return col ->name().c_str();
+}
+
+size_t ds_column_width(const void *ptr) {
+	const ds::column *col = reinterpret_cast<const ds::column *>(ptr);
+	return col ->width();
+}
+
+size_t ds_column_length(const void *ptr) {
+	const ds::column *col = reinterpret_cast<const ds::column *>(ptr);
+	return col ->length();
+}
+
+ds_type_t ds_column_type(const void *ptr) {
+	const ds::column *col = reinterpret_cast<const ds::column *>(ptr);
+	return col ->type();
+}
+
+int ds_column_read(void *ptr, size_t offset, size_t num, void*dst) {
+	ds::column *col = reinterpret_cast<ds::column *>(ptr);
+	return col ->read(offset, num, dst);
+}
+
+int ds_column_read_double(void *ptr, size_t offset, size_t num, double*dst) {
+	ds::column *col = reinterpret_cast<ds::column *>(ptr);
+	return col ->read(offset, num, dst);
+}
