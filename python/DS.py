@@ -32,9 +32,18 @@ class DS(object):
     O_UNIQUE  = 0x20
 
     def __init__(self, path, mode = O_READ, buff_siz = 1024):
+        """
+        :param path: path to DS
+        :param mode: open file mode. Default O_READ
+        :param buff_siz: buffer size. Default is 1024
+        """
         self.ds = _lib.ds_open(path, mode, buff_siz)
 
     def columns(self):
+        """
+        Get list of columns
+        :return: List of tuples (name, type, shape)
+        """
         num = _lib.ds_cols(self.ds)
         result = []
         for k in range(0, num):
@@ -47,7 +56,14 @@ class DS(object):
         return result
 
     def read(self, key, offs = 0, num = -1):
+        """
+        Read column from specified offset
 
+        :param key: int or str. Index or name of the column
+        :param offs: offset to read from
+        :param num: number of rows to read
+        :return: numpy matrix
+        """
         if type(key) == str:
             col = _lib.ds_get_column_by_name(self.ds, key)
         elif type(key) == int:
@@ -75,13 +91,32 @@ class DS(object):
         return np.frombuffer(cast(ptr, POINTER(buff)).contents).reshape(num, cwid)
 
     def __getitem__(self, key):
+        """
+        Reads content of the column indexed by key
+
+        :param key: int or str
+        :return: numpy matrix
+        """
         if type(key) == tuple:
             return tuple(self.read(i, 0, -1) for i in key)
         else:
             return self.read(key, 0, -1)
 
+    def close(self):
+        """
+        Closes DS
+
+        :return: None
+        """
+        _lib.close(self.ds)
+
     @staticmethod
     def version():
+        """
+        Current version of DS
+
+        :return: Tuple (major, minor, build)
+        """
         major = pointer(c_int(1))
         minor = pointer(c_int(1))
         build = pointer(c_int(1))
