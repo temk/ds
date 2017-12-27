@@ -2,7 +2,7 @@ from enum import Enum
 from ctypes import *
 import numpy as np
 
-_lib = CDLL('../core/cmake-build-debug/libds.so')
+_lib = CDLL('libds.so')
 _lib.ds_version.restype     = None
 _lib.ds_column_name.restype = c_char_p
 
