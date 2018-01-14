@@ -2,7 +2,9 @@ from enum import Enum
 from ctypes import *
 import numpy as np
 
-_lib = CDLL('libds.so')
+#_lib = CDLL('libds.so')
+_lib = CDLL('/usr/local/stow/ds-2017-12-27.15-01-52/lib/libds.so')
+
 _lib.ds_version.restype     = None
 _lib.ds_column_name.restype = c_char_p
 
@@ -37,7 +39,7 @@ class DS(object):
         :param mode: open file mode. Default O_READ
         :param buff_siz: buffer size. Default is 1024
         """
-        self.ds = _lib.ds_open(path, mode, buff_siz)
+        self.ds = _lib.ds_open(path.encode('ascii'), mode, buff_siz)
 
     def columns(self):
         """
@@ -65,7 +67,7 @@ class DS(object):
         :return: numpy matrix
         """
         if type(key) == str:
-            col = _lib.ds_get_column_by_name(self.ds, key)
+            col = _lib.ds_get_column_by_name(self.ds, key.encode('ascii'))
         elif type(key) == int:
             col = _lib.ds_get_column_by_index(self.ds, key)
         else:

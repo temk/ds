@@ -12,20 +12,20 @@ filter_buff::~filter_buff() {
 	delete [] buff_;
 }
 
-void 
+void
 filter_buff::flush() {
 	if (len_ > 0) {
-		next() ->put(buff_, len_);		
+		next() ->put(buff_, len_);
 		len_ = 0L;
 	}
 }
 
-void 
+void
 filter_buff::put(const void *data, size_t num) {
 	if ((len_ + num) > cap_) {
 		flush();
 	}
-	
+
 	if (num > cap_) {
 		next() ->put(data, num);
 	} else {

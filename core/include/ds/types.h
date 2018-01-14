@@ -52,4 +52,5 @@ namespace ds {
 #endif
 };
 
+typedef ds::type_t ds_type_t;
 #endif // __DS_TYPES_H__

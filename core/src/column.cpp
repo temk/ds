@@ -101,7 +101,9 @@ column::read(size_t offset, size_t num, void *data) {
     flush();
 
 	size_t rd = min(length_ - offset, num);
-    filter_ ->get(offset, rd, data);
+    if (rd > 0) {
+        filter_ ->get(offset, rd, data);
+    }
 	return rd;
 }
 
@@ -110,7 +112,9 @@ column::read(const void *indexes, int idx_siz, size_t num, void *data) {
     flush();
 
     size_t rd = min(length_ , num);
-    filter_ ->get(indexes, idx_siz, num, data);
+    if (rd > 0) {
+        filter_ ->get(indexes, idx_siz, num, data);
+    }
 }
 
 void
